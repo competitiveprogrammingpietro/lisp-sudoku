@@ -185,6 +185,38 @@
     
   (ormap find-singleton-line entry))
 
+;; Expects a list containing list of list of {list, atom} which is the representation
+;; of a whole table, USELESS
+(define (remove-singleton list number)
+  
+  ;; Removes the singleton from a single list composed ONLY by atoms
+  ;; THIS IS WHAT I WANTED
+  (define (remove-singleton-atom list)
+    (if (empty? list)
+        null
+        (if (= (car list) number)
+            (remove-singleton-atom (cdr list))
+            (cons (car list) (remove-singleton-atom (cdr list)))))) 
+
+  ;; Removes the singleton from a single list composed by atoms and pairs, that is, other lists
+  (define (remove-singleton-pair entry)
+    (if (empty? entry)
+        null
+        (if (atom? (car entry))
+            (cons (car entry) (remove-singleton-pair (cdr entry))) 
+            (cons (remove-singleton-atom (car entry)) (remove-singleton-pair (cdr entry)))))) 
+  (if (empty? list)
+      null
+      (cons (remove-singleton-pair (car list)) (remove-singleton (cdr list) number))))
+
+;(remove-singleton-two `(1 2 3 4 (5 6 7) 8 9 (5 6 7)) 5)
+(remove-singleton `(
+        (1 2 3 4 (5 6 7) 8 9 (5 6 7))
+        (1 2 3 4 (5 6 7) 8 9 (5 6 7))
+        (1 2 3 4 (5 6 7) 8 9 (5 6 7))
+        (1 2 3 4 (5 6 7) 8 9 (5 6 7))
+        )
+      5)
 
 ;; A singleton has been found: if greater than zero return it otherwise
         ;; keep searching
@@ -226,7 +258,8 @@
 (writeln line-number)
 (writeln column-number)
 (writeln singleton-number)
-(box-index (- line-number 1) (- column-number 1))
+(remove-singleton TEST singleton-number)
+;(box-index (- line-number 1) (- column-number 1))
 ;(find-singleton (transformTable (compute-columns sampletable 9)))
 ;(find-singleton (transformTable (compute-boxes sampletable 0)))
 
