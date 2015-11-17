@@ -15,6 +15,44 @@
 ; This row represents all the possibilities, that is, all the numbers from 1 to 9
 (define TBD `(1 2 3 4 5 6 7 8 9))
 
+(define TEST `(
+               ; 1
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
+               ; 2
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
+               ; 3
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
+               ; 4
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
+               ; 5
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) 8 (1 2 3 4 5 6 7 8 9))
+               ; 6
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
+               ; 7
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
+               ; 8
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
+               ; 9
+               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
+                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))              
+               ))
 
 ;; Transform an entire table table
 (define (transformTable table)
@@ -105,26 +143,91 @@
       null
       (cons (compute-box (compute-line entry acc) acc) (compute-boxes entry (+ acc 1)))))
 
+(define (atom? x)
+  (not (or (pair? x) (null? x))))
+
+;; Global data
+(define singleton-number 0)
+(define line-number 1)
+(define column-number 1)
+
+(define (box-index line column)
+  (+
+   (* (truncate (/ line 3)) 3)
+   (truncate (/ column 3))))
+
+;; Find a singleton given the whole
+;; list, that is, a list of list
+;; which could be composed by atom and
+;; list ... TODO: improve comments
+(define (find-singleton entry)
+  (define (incr-line)
+    (set! line-number (+ line-number 1)))
+  (define (incr-column)
+    (set! column-number (+ column-number 1)))
+  (define (set-number number)
+    (set! singleton-number  number))
+  
+  ;; Get the singleton and stores the column
+  ;; Entry is a line list
+  (define (contains-singleton entry)
+    (define (is-singleton item)
+      (if (and (atom? item) (> item 0))
+          (set-number item)
+          (and (incr-column) #f)))
+    ;; Iterate through columns
+    (ormap is-singleton entry))
+
+  ;; Entry is the a line
+  (define (find-singleton-line entry)
+    (if (contains-singleton entry) #t
+        (and (incr-line) (set! column-number 1) #f)))
+    
+  (ormap find-singleton-line entry))
+
+
+;; A singleton has been found: if greater than zero return it otherwise
+        ;; keep searching
+        ;((atom? (car entry)) (if (> (car entry) 0)
+         ;                        (set-number (car entry))
+          ;                       (contains-singleton (cdr entry))))
+        
+  
 ;; Test boxes
-(compute-line sampletable 0)
+;(compute-line sampletable 0)
 ;(compute-line sampletable 1)
 ;(compute-line sampletable 2)
-(compute-line sampletable 3)
+;(compute-line sampletable 3)
 ;(compute-line sampletable 4)
 ;(compute-line sampletable 5)
-(compute-line sampletable 6)
+;(compute-line sampletable 6)
 ;(compute-line sampletable 7)
 ;(compute-line sampletable 8)
-
 ;(compute-box (compute-line sampletable 0) 0)
 ;(compute-box (compute-line sampletable 0) 0)
 ;(compute-box (compute-line sampletable 0) 0)
 ;(compute-box (compute-line sampletable 0) 0)
 
-(compute-boxes sampletable 0)
-;; Test nth-column, first column
-;(compute-columns sampletable 9)
-
-;; Test transformation
+;; Test transform
 ;(transformTable sampletable)
 
+;; Test nth-column, first column
+;(compute-columns sampletable 9)
+;(transformTable (compute-columns sampletable 9))
+
+;; Test compute boxes
+;(compute-boxes sampletable 0)
+;(transformTable (compute-boxes sampletable 0))
+
+
+;; Test find-singleton
+;(find-singleton (transformTable sampletable))
+(find-singleton TEST)
+(writeln line-number)
+(writeln column-number)
+(writeln singleton-number)
+(box-index (- line-number 1) (- column-number 1))
+;(find-singleton (transformTable (compute-columns sampletable 9)))
+;(find-singleton (transformTable (compute-boxes sampletable 0)))
+
+;(let ((x 3) (y (+ x 1))) (+ x y))
