@@ -89,14 +89,25 @@
    (* (truncate (/ line 3)) 3)
    (truncate (/ column 3))))
 
+;; Add the singleton to the global list
+(define (add-singleton line column number visited-singleton)
+    (cons visited-singleton (list line column number)))
+
+;; Check if a given singleton is already present in the global list
+(define (is-singleton-present line column number visited-singleton)
+  (define (singleton-equals? item)
+    (and (= line (car item))
+         (= column (car (cdr item)))
+         (= number (car (cdr (cdr item))))))
+  
+  ; Function's entry point
+  (ormap singleton-equals? visited-singleton))
 
 ;; Find a singleton given the whole
 ;; list, that is, a list of list
 ;; which could be composed by atom and
 ;; list ... TODO: improve comments
-
-
-(define (find-singleton entry)
+(define (find-singleton entry visited-singleton)
   (define singleton-number 0)
   (define line-number 0)
   (define column-number 0)
@@ -109,35 +120,21 @@
   
   (define (set-number number)
     (set! singleton-number  number))
-
-  (define (add-singleton line column number)
-    (cons (list line column number) visited-singleton))
-
-  (define (is-present line column number)
-    (define (singleton-equals? item)
-      (and (= line (car item))
-           (= column (car (cdr item)))
-           (= number (car (cdr (cdr item))))))
-    (define (not-singleton-equals? item)
-      (not (singleton-equals? item)))
-    ; Function's entry point
-    (andmap not-singleton-equals? visited-singleton))
-  
     
-  
   ;; Get the singleton and stores the column
   ;; entry is the first element of line list
   (define (contains-singleton entry)
     (define (is-singleton item)
-      (if (and (atom? item) (> item 0) ((not (is-present line-number column-number item))))
-          (add-singleton item)
+      (if (and (atom? item) (> item 0) (not (is-singleton-present line-number column-number item visited-singleton)))
+          (cons (list line-number column-number item) visited-singleton)
           (and (incr-column) #f)))
-    ;; Iterate through columns
+
+    ;; Function's entry point: iterate through columns
     (ormap is-singleton entry))
 
-  ;; The entry is a line
+  ;; Entry is a line
   (define (find-singleton-line entry)
-    (if (contains-singleton entry) #t
+    (or (contains-singleton entry)
         (and (incr-line) (set! column-number 0) #f)))
 
   ;; Function's entry point
@@ -170,29 +167,35 @@
   (remove-singleton-pvt entry acc))
 
 
-;(define (first-step lines columns boxes)
-;  (and (print lines)
-;  (if (not (find-singleton lines))
-;      (print lines)
-;      (first-step (remove-singleton lines singleton-number line-number)
-;                  (remove-singleton columns singleton-number column-number)
-;                  (remove-singleton boxes singleton-number (box-index (- line-number 1) (- column-number 1)))))))
+(define (first-step lines columns boxes singletons)
+  (if (not singletons)
+      (print lines)
+      (let (
+            (lineidx (car (take (car singletons) 1)))
+            (columnidx (car (take (drop (car singletons) 1) 1)))
+            (number (car (drop (car singletons) 2))))
+            ((first-step (remove-singleton lines number lineidx)
+                   (remove-singleton columns number  columnidx)
+                   (remove-singleton boxes number (box-index lineidx columnidx))
+                   (find-singleton (remove-singleton lines number lineidx) singletons)
+                   )))))
+
+;; It's much more convenient to use a SINGLE table and scan it using different "prespective" as boxes, lines, columns
 
 ;; Exports
-(provide transformTable extract compute-columns compute-boxes atom? box-index find-singleton remove-singleton)
+(provide transformTable extract compute-columns compute-boxes atom? box-index find-singleton remove-singleton add-singleton is-singleton-present remove-singleton)
 
 
 ;; Kind of a real beginning
 ;; List of nine lines, tranformed
 
 ;; Global data
-(define visited-singleton `())
-;(define lines (transformTable sampletable))
+(define lines (transformTable sampletable))
 ;;; List of nine columns, tranformed
-;(define columns (transformTable (compute-columns sampletable 9)))
+(define columns (transformTable (compute-columns sampletable 9)))
 ;;; List of nine boxes, tranformed
-;(define boxes (transformTable (compute-boxes sampletable 0)))
-
+(define boxes (transformTable (compute-boxes sampletable 0)))
+(first-step lines columns boxes (find-singleton lines null))
 
 
 
