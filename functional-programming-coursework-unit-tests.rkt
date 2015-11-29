@@ -106,6 +106,92 @@
                          (check-equal? (is-singleton-present 0 0 1 visited-singleton) #t "Singleton is already in the list")
                          (check-equal? (is-singleton-present 1 0 1 visited-singleton) #f "This singleton itsn't already in the list"))))
 
+(define remove-singleton-list-tests
+  (test-suite "remove-singleton-list-tests"
+              (test-case "Test 1"
+                         (define test-list-one `((1 2 3)))
+                         (define test-list-two 1)
+                         (check-equal? (remove-singleton-element (car test-list-one) 3) `(1 2))
+                         (check-equal? (remove-singleton-element test-list-two 3) 1))))
+
+
+(define remove-singleton-column-tests
+  (test-suite "remove-singleton-column-tests"
+              (test-case "No singleton to remove"
+                         (define test-list-one `(1 2 3 4 5 6 7 8 9))
+                         (check-equal? (remove-singleton-column test-list-one 2 3) test-list-one))
+              (test-case "Remove singleton"
+                         (define test-list-one `(1 (3 4 5) 2 3))
+                         (define result-list-one `(1 (4 5) 2 3))
+                         (check-equal? (remove-singleton-column test-list-one 2 3) result-list-one))
+              (test-case "No singleton to remove but sublists present"
+                         (define test-list-one `(1 (3 4 5) (1 2 3 4) 2 3))
+                         (define result-list-one `(1 (3 4 5) (1 2 3 4) 2 3))
+                         (check-equal? (remove-singleton-column test-list-one 2 9) result-list-one))))
+
+(define remove-singleton-table-column-tests
+  (test-suite "remove-singleton-table-column-tests"
+              (test-case "No singleton to remove because no sublist"
+                         (define test-list-input `(
+                                                   ;; Line 1..n
+                                                   (1 2 3 4 5 6 7 8 9)
+                                                   (1 2 3 4 5 6 7 8 9)))
+                         (check-equal? (remove-singleton-table-column test-list-input 2 3) test-list-input))
+
+              (test-case "Singleton remove successfully at column 2"
+                         (define test-list-input `(
+                                                   ;; Line 1..n
+                                                   (1 (1 2 3 4 5) 3 4 5 6 7 8 9)
+                                                   (1 (1 2 3 4 5) 2 3 4 5 6 7 8 9)))
+                         (define test-list-output `(
+                                                   ;; Line 1..n
+                                                   (1 (1 2 4 5) 3 4 5 6 7 8 9)
+                                                   (1 (1 2 4 5) 2 3 4 5 6 7 8 9)))
+                         (check-equal? (remove-singleton-table-column test-list-input 2 3) test-list-output))
+              
+              (test-case "Singleton not remove because not present in the column"
+                         (define test-list-input `(
+                                                   ;; Line 1..n
+                                                   (1 2 3 4 5 6 7 8 9)
+                                                   (1 (1 2 4 5) 2 3 4 5 6 7 8 9)))
+                         (check-equal? (remove-singleton-table-column test-list-input 2 3) test-list-input))))
+
+(define remove-singleton-table-line-tests
+  (test-suite "remove-singleton-table-line-tests"
+              (test-case "No singleton to remove because no sublist"
+                         (define test-list-input `(
+                                                   ;; Line 1..n
+                                                   (1 2 3 4 5 6 7 8 9)
+                                                   (1 2 3 4 5 6 7 8 9)))
+                         (check-equal? (remove-singleton-table-line test-list-input 2 3) test-list-input))
+
+              (test-case "Singletons to remove at line two and three but just the third line gets affected"
+                         (define test-list-input `(
+                                                   ;; Line 1..n
+                                                   (1 2 3 4 5 6 7 8 9)
+                                                   (1 (1 2 3 4) 2 3 4 5 6 7 8 9)
+                                                   (1 (1 2 3 4) 3 4 5 6 7 8 9)
+                                                   ))
+                         (define test-list-output `(
+                                                   ;; Line 1..n
+                                                   (1 2 3 4 5 6 7 8 9)
+                                                   (1 (1 2 3 4) 2 3 4 5 6 7 8 9)
+                                                   (1 (1 2 4) 3 4 5 6 7 8 9)
+                                                   ))
+                         (check-equal? (remove-singleton-table-line test-list-input 3 3) test-list-output))
+
+               (test-case "Sublists present but no singleton to remove"
+                         (define test-list-input `(
+                                                   ;; Line 1..n
+                                                   (1 2 3 4 5 6 7 8 9)
+                                                   (1 (1 2) 2 3 4 5 6 7 8 9)
+                                                   (1 (1 2) 3 4 5 6 7 8 9)
+                                                   ))
+                         (check-equal? (remove-singleton-table-line test-list-input 3 3) test-list-input))
+
+              ))
+
+
 (define find-singleton-tests
   (test-suite "find-singleton"
               (test-case "Find the only singleton of a 3x3 table"
@@ -115,7 +201,7 @@
                                               ((1 2 3) (1 2 3) (1 2 3))
                                               ))
                            (define visited-singleton null)
-                           (check-equal? (find-singleton list-input visited-singleton) `((1 2 1)))
+                           (check-equal? (find-singleton list-input visited-singleton) `((2 3 1)))
                            )
 
               (test-case "No singleton present"
@@ -162,30 +248,110 @@
                                                                            (0 (2 3) (2 3))
                                                                            ((1 2 3) 1 (1 2 3))
                                                                            )))))
+
+
+(define remove-singleton-table-box-tests
+  (test-suite "remove-singleton-table-box-tests"
+               (test-case "No sigleton to remove"
+                          (define list-input `(
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               ))
+                            (check-equal? (remove-singleton-table-box list-input 2 2) list-input))
+
+               (test-case "Singleton to remove at box one"
+                          (define list-input `(
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               ))
+
+                          (define list-output `(
+                                               (1 (1 2) 2 3 4 5 6 7 8 9)
+                                               (1 (1 2) 2 3 4 5 6 7 8 9)
+                                               (1 (1 2) 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               ))
+                            (check-equal? (remove-singleton-table-box list-input 1 3) list-output))
+
+               (test-case "Singleton to remove at box one, but box two asked instead therefore nothing is changed"
+                          (define list-input `(
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               ))
+
+                          (define list-output `(
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 (1 2 3) 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               (1 2 3 4 5 6 7 8 9)
+                                               ))
+                            (check-equal? (remove-singleton-table-box list-input 2 3) list-output))
+
+
+               
+               ))
                                        
-                         
-                                                     
-(define visited-singleton null)
-(define list-input `(
-                                              (1 (1 2 3) 0)
-                                              (0 (1 2 3) 1)
-                                              ((1 2 3) (1 2 3) (1 2 3))
-                                              ))
-(find-singleton list-input null)
+(define get-tests
+  (test-suite "get-tests"
+              (test-case "Get a line"
+                         (define list-input `((1 2 3)))
+                         (check-equal? (get-number list-input) 3)
+                         (check-equal? (get-column list-input) 2)
+                         (check-equal? (get-line list-input) 1))))
+
+
 ;(find-singleton list-input visited-singleton)
 ;(find-singleton list-input (find-singleton list-input visited-singleton))
 ;(find-singleton list-input (find-singleton list-input (find-singleton list-input visited-singleton)))
 
 ;; Run tests
-;(run-tests transform-table-tests)
-;(run-tests extract-tests)
-;(run-tests compute-columns-tests)
-;(run-tests compute-boxes-tests)
-;(run-tests atom?-tests)
+(run-tests  get-tests)
+(run-tests transform-table-tests)
+(run-tests extract-tests)
+(run-tests compute-columns-tests)
+(run-tests compute-boxes-tests)
+(run-tests atom?-tests)
 (run-tests find-singleton-tests)
-;(run-tests add-singleton-tests)
-;(run-tests is-singleton-present-tests)
+(run-tests add-singleton-tests)
+(run-tests is-singleton-present-tests)
 (run-tests remove-singleton-tests)
+(run-tests remove-singleton-list-tests)
+(run-tests remove-singleton-column-tests)
+(run-tests remove-singleton-table-column-tests)
+(run-tests remove-singleton-table-line-tests)
+(run-tests remove-singleton-table-box-tests)
+(run-tests reduce-tests)
 ; This row represents all the possibilities, that is, all the numbers from 1 to 9
 (define TBD `(1 2 3 4 5 6 7 8 9))
 
