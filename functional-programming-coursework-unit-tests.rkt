@@ -351,7 +351,6 @@
 (run-tests remove-singleton-table-column-tests)
 (run-tests remove-singleton-table-line-tests)
 (run-tests remove-singleton-table-box-tests)
-(run-tests reduce-tests)
 ; This row represents all the possibilities, that is, all the numbers from 1 to 9
 (define TBD `(1 2 3 4 5 6 7 8 9))
 

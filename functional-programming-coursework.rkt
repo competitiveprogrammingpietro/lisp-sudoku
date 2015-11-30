@@ -73,10 +73,11 @@
   ;; Create a single box given the pointer
   (define (compute-box entry index)
     (define (compute-box-pvt entry index)
-      (list (take (compute-line-offset (car entry) index) 3)
-            (take (compute-line-offset (car (cdr entry)) index) 3)
-            (take (compute-line-offset (car (cdr (cdr entry))) index) 3)))
-    (flatten (compute-box-pvt entry index)))
+      (cons (take (compute-line-offset (car entry) index) 3)
+            (cons (take (compute-line-offset (car (cdr entry)) index) 3)
+                  (take (compute-line-offset (car (cdr (cdr entry))) index) 3))))
+    (compute-box-pvt entry index))
+  
   (if (> acc 8)
       null
       (cons (compute-box (compute-line entry acc) acc) (compute-boxes entry (+ acc 1)))))
@@ -277,6 +278,65 @@
 
 
 ;; =================================================================================
+;; IS PRESENT FAMILY FUNCTIONS
+;; =================================================================================
+(define (is-present-item item number)
+  (if (atom? item)
+      #f
+      (member number item)))
+
+;; Search for line
+(define (is-present-line table number lineidx columnidx)
+  (define (is-present-line-pvt line accC)
+    (cond ((empty? line) #f)
+          ((= accC columnidx) (is-present-line-pvt (cdr line) (+ accC 1)))
+          ((is-present-item (car line) number) #t)
+          (else (is-present-line-pvt (cdr line) (+ accC 1)))))
+  (is-present-line-pvt (car (drop (take table lineidx) (- lineidx 1))) 1))
+
+;; Search column
+(define (is-present-column table number lineidx columnidx)
+  (define (is-present-column-line-pvt line)
+    (is-present-item (car (drop line (- columnidx 1))) number))
+  (define (pvt line acc)
+    (cond
+      ;; Termination case
+      [(empty? line) #f]
+      ;; Skip cell
+      [(= acc lineidx) (pvt (cdr line) (+ acc 1))]
+      ;; Check cell
+      [(is-present-column-line-pvt (car line)) #t]
+      ;; Keep searching
+      [else (pvt (cdr line) (+ acc 1))]))
+  (pvt table 1))
+
+;; Search boxes, not the most efficient due to the copy
+(define (is-present-box table number lineidx columnidx)
+  (define boxidx (box-index lineidx columnidx))
+  (define boxes-table (compute-boxes table 0))
+  
+  ;; Compute where the skip cell is 
+  (define cellidx (+ (* (- (modulo lineidx 3) 1) 3) (modulo columnidx 3)))
+
+  (define (is-present-box-pvt line acc)
+    (cond
+      ;; Termination case
+      [(empty? line) #f]
+      ;; Skip cell
+      [(= acc cellidx) (is-present-box-pvt (cdr line) (+ acc 1))]
+      ;; Check cell
+      [(is-present-item (car line) number) #t]
+      ;; Continue searching with another cell
+      [else (is-present-box-pvt (cdr line) (+ acc 1))]))
+     
+  (define (pvt line acc)
+    (cond
+      [(empty? line) #f]
+      [(= acc boxidx) (is-present-box-pvt (car line) 1)]
+      [else (pvt (cdr line))]))
+  (pvt table 1))
+    
+;; =================================================================================
 ;; FIRST STEP
 ;; =================================================================================
 (define (get-line singleton-list)
@@ -312,8 +372,8 @@
 ;; =================================================================================
 
 ;; MAIN TEST
-(define lines (transformTable sampletable))
-(first-step lines (find-singleton lines null))
+;(define lines (transformTable sampletable))
+;(first-step lines (find-singleton lines null))
 
 
 
@@ -338,6 +398,9 @@
  get-line
  get-column
  get-number
+ is-present-line
+ is-present-column
+ is-present-box
  )
 
 
