@@ -47,7 +47,7 @@
   ;; Return the reverse of it
   (reverse (compute-columns-r list length)))
 
-;; List of lines into lists of boxes
+;; List of lines into lists of boxes of a fixed size
 (define (compute-boxes entry acc)
   (define (compute-offset index)
     (if (> index 8)
@@ -57,12 +57,14 @@
     (if (> index 8)
         -1
         (* (truncate (/ index 3)) 3)))
+
   ;; Return a pointer to the first line
   ;; which is included in the index-th box
   (define (compute-line entry index)
     (if (empty? entry)
         null
         (drop entry (compute-raw index))))
+
   ;; Return a pointer to the first element
   ;; of that line contained in the index-th
   ;; box
@@ -70,12 +72,16 @@
   ;; number (index / 3) * 3
   (define (compute-line-offset entry index)
     (drop entry (compute-offset index)))
+  
   ;; Create a single box given the pointer
   (define (compute-box entry index)
     (define (compute-box-pvt entry index)
-      (cons (take (compute-line-offset (car entry) index) 3)
-            (cons (take (compute-line-offset (car (cdr entry)) index) 3)
-                  (take (compute-line-offset (car (cdr (cdr entry))) index) 3))))
+      ;; Why do I need that ?
+      (apply append
+             (list 
+              (take (compute-line-offset (car entry) index) 3)
+              (take (compute-line-offset (car (cdr entry)) index) 3)
+              (take (compute-line-offset (car (cdr (cdr entry))) index) 3))))
     (compute-box-pvt entry index))
   
   (if (> acc 8)
@@ -334,7 +340,9 @@
       [(empty? line) #f]
       [(= acc boxidx) (is-present-box-pvt (car line) 1)]
       [else (pvt (cdr line))]))
-  (pvt table 1))
+
+  ;(pvt boxes-table 1))
+  (is-present-box-pvt (drop (take boxes-table boxidx) (- boxidx 1)) 1))
     
 ;; =================================================================================
 ;; FIRST STEP

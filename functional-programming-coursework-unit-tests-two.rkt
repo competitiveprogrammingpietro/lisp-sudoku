@@ -127,7 +127,7 @@
                                               (1 (1 2) 3 4 5 6 7 8 9)))
                          (check-equal? (is-present-box list-input 3 1 2) #f))
               
-              (test-case "Singleton not present in that box with the exception of the given one"
+              (test-case "Singleton not present in that box with the exception of the given one, the one present at the botton right corner should not be considered"
                          (define list-input `(
                                               (1 (1 3) 3 4 5 6 7 8 9) 
                                               (1 (1 2) 3 4 5 6 7 8 9)
