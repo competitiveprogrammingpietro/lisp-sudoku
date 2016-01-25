@@ -112,53 +112,52 @@
 (define (add-singleton line column number visited-singleton)
     (cons (list line column number) visited-singleton))
 
-;; Check if a given singleton is already present in the global list
-(define (is-singleton-present line column number visited-singleton)
-  (define (singleton-equals? item)
-    (and (= line (car item))
-         (= column (car (cdr item)))
-         (= number (car (cdr (cdr item))))))
-  
-  ; Function's entry point
-  (ormap singleton-equals? visited-singleton))
 
 
 ;; =================================================================================
 ;; FIND SINGLETON
 ;; Return a list (line-number column-number item)
+;; Arguments :
+;;             entry : table
+;;             visited-singleton: list of already visited singleton in the format
+;;                                ((line, column, number) ....)
+;;         
 ;; =================================================================================
-(define (find-singleton entry visited-singleton)
-  (define singleton-number 0)
-  (define line-number 1)
-  (define column-number 1)
 
-  (define (incr-line)
-    (set! line-number (+ line-number 1)))
-
-  (define (incr-column)
-    (set! column-number (+ column-number 1)))
+;; Check if a given singleton is already present in the global list
+(define (is-singleton-present triple visited-singleton)
+  (if (member triple visited-singleton) #t
+      #f))
   
-  (define (set-number number)
-    (set! singleton-number  number))
-    
-  ;; Get the singleton and stores the column
-  ;; entry is the first element of line list
-  (define (contains-singleton entry)
-    (define (is-singleton item)
-      (if (and (atom? item) (> item 0) (not (is-singleton-present line-number column-number item visited-singleton)))
-          (cons (list line-number column-number item) visited-singleton)
-          (and (incr-column) #f)))
+(define (find-singleton entry visited-singleton)
 
-    ;; Function's entry point: iterate through columns
-    (ormap is-singleton entry))
+  
+  (define (find-singleton-line-pvt line (indexc 1))
+    (cond
+      ([empty? line] #f)
+      ([atom? (car line)] [list indexc (car line)])
+      (else (find-singleton-line-pvt (cdr line) (increment indexc)))))
 
-  ;; Entry is a line
-  (define (find-singleton-line entry)
-    (or (contains-singleton entry)
-        (and (incr-line) (set! column-number 1) #f)))
+  (define (find-singleton-table-pvt table (indexl 1))
+    (if (empty? table) #f
+        (let ([singleton-found (find-singleton-line-pvt (car table))])
+          (cond
 
-  ;; Function's entry point
-  (ormap find-singleton-line entry))
+            ;; Two possibilities lead to the recursive call
+            ;; 1) Singleton not found
+            ;; 2) Singleton found but already present
+            ([or (equal? #f singleton-found)
+                 (equal? (is-singleton-present (cons indexl singleton-found) visited-singleton) #t)]
+             (find-singleton-table-pvt (cdr table) (increment indexl)))
+            
+            ;; Return the new list of singletons, that is, the new singleton element
+            ;; added at the beginning of the visited-singleton list
+            (else (cons (cons indexl singleton-found)
+                        visited-singleton))))))
+
+  ;; Function entry point
+  (find-singleton-table-pvt entry))
+  
 
 ;; =================================================================================
 ;; FIND SINGLETON END
@@ -418,8 +417,7 @@
  is-present-line
  is-present-column
  is-present-box
- increment
- )
+ increment)
 
 
 ;; Kind of a real beginning

@@ -164,8 +164,8 @@
   (test-suite "is-singleton-present-tests"
               (test-case "Various tests to check the function works correctly"
                          (define visited-singleton `((0 0 1)))
-                         (check-equal? (is-singleton-present 0 0 1 visited-singleton) #t "Singleton is already in the list")
-                         (check-equal? (is-singleton-present 1 0 1 visited-singleton) #f "This singleton itsn't already in the list"))))
+                         (check-equal? (is-singleton-present `(0 0 1) visited-singleton) #t "Singleton is already in the list")
+                         (check-equal? (is-singleton-present `(1 0 1) visited-singleton) #f "This singleton itsn't already in the list"))))
 
 (define remove-singleton-list-tests
   (test-suite "remove-singleton-list-tests"
@@ -257,18 +257,17 @@
   (test-suite "find-singleton"
               (test-case "Find the only singleton of a 3x3 table"
                          (define list-input `(
-                                              ((1 2 3) 0 0)
-                                              (0 (1 2 3) 1)
+                                              ((1 2 3) (1 2 3)  (1 2 3))
+                                              ((1 2 3) (1 2 3) 1)
                                               ((1 2 3) (1 2 3) (1 2 3))
                                               ))
                            (define visited-singleton null)
-                           (check-equal? (find-singleton list-input visited-singleton) `((2 3 1)))
-                           )
+                           (check-equal? (find-singleton list-input visited-singleton) `((2 3 1))))
 
               (test-case "No singleton present"
                          (define list-input `(
-                                              ((1 2 3) 0 0)
-                                              (0 (1 2 3) 0)
+                                              ((1 2 3) (1 2 3) (1 2))
+                                              ((1 2) (1 2 3) (1 2))
                                               ((1 2 3) (1 2 3) (1 2 3))
                                               ))
                            (define visited-singleton null)
@@ -276,14 +275,12 @@
 
               (test-case "Do not return twice the same singleton"
                          (define list-input `(
-                                              ((1 2 3) 0 0)
-                                              (0 (1 2 3) 1)
+                                              ((1 2 3) (1 2) (1 2))
+                                              ((1 2 3) (1 2 3) 1)
                                               ((1 2 3) (1 2 3) (1 2 3))
                                               ))
                            (define visited-singleton null)
-                           (check-equal? (find-singleton list-input (find-singleton list-input visited-singleton)) #f))
-
-              ))
+                           (check-equal? (find-singleton list-input (find-singleton list-input visited-singleton)) #f))))
 
 (define remove-singleton-tests
   (test-suite "remove-singleton-tests"
@@ -399,12 +396,12 @@
 ;; Run tests
 ;(run-tests  get-tests)
 ;(run-tests transform-table-tests)
-(run-tests increment-tests)
+;(run-tests increment-tests)
 ;(run-test extract-tests)
 ;(run-tests compute-columns-tests)
 ;(run-tests compute-boxes-tests)
 ;(run-tests atom?-tests)
-;(run-tests find-singleton-tests)
+(run-tests find-singleton-tests)
 ;(run-tests add-singleton-tests)
 ;(run-tests is-singleton-present-tests)
 ;(run-tests remove-singleton-tests)
