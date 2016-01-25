@@ -23,16 +23,16 @@
 (define extract-tests
   (test-suite "extract-tests"
               (test-case "Extract the first element"
-                         (define test-list `(1 2 3 4 5 6 7 8 9))
-                         (check-equal? (extract test-list 1) 1 ))
+                (define test-list `(1 2 3 4 5 6 7 8 9))
+                (check-equal? (extract test-list 1) 1 ))
 
               (test-case "Extract the last element"
-                         (define test-list `(1 2 3 4 5 6 7 8 9))
-                         (check-equal? (extract test-list 9) 9 "Extract the last"))
+                (define test-list `(1 2 3 4 5 6 7 8 9))
+                (check-equal? (extract test-list 9) 9 "Extract the last"))
 
               (test-case "Extract the the middle one"
-                         (define test-list `(1 2 3))
-                         (check-equal? (extract test-list 2) 2 "Extract the middle one"))))
+                (define test-list `(1 2 3))
+                (check-equal? (extract test-list 2) 2 "Extract the middle one"))))
 
 (define compute-columns-tests
   (test-suite "compute-columns-tests"
@@ -390,9 +390,9 @@
 ;; Run tests
 ;(run-tests  get-tests)
 ;(run-tests transform-table-tests)
-;(run-tests extract-tests)
+(run-tests extract-tests)
 ;(run-tests compute-columns-tests)
-(run-tests compute-boxes-tests)
+;(run-tests compute-boxes-tests)
 ;(run-tests atom?-tests)
 ;(run-tests find-singleton-tests)
 ;(run-tests add-singleton-tests)

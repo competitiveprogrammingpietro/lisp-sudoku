@@ -27,9 +27,20 @@
       null
       (cons (transformRaw (car table)) (transformTable (cdr table)))))
 
-;; Extract the n-th element (combine drop and take ?)
+;; Extract the n-th element from a list
 (define (extract list idx)
-  (car (drop (take list idx) (- idx 1))))
+  (define (extract-pvt entry (acc 1))
+;    (display entry)
+;    (display idx)
+;    (display acc)
+    (cond
+      ([empty? entry] null)
+      ([= idx acc] [car entry])
+      (else (extract-pvt (cdr entry) (+ acc 1)))))
+
+  (extract-pvt list))
+                       
+  
   
 ;; Transform a list of lines into a list of columns
 (define (compute-columns list length)
@@ -416,8 +427,8 @@
 ;; List of nine lines, tranformed
 
 ;; Global data
-;(define lines (transformTable sampletable))
-;(define singleton_list null)
+(define lines (transformTable sampletable))
+(define singleton_list null)
   
 ;;; List of nine columns, tranformed
 ;(define columns (transformTable (compute-columns sampletable 9)))
