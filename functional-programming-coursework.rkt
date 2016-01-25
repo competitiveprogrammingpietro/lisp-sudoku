@@ -30,18 +30,12 @@
 ;; Extract the n-th element from a list
 (define (extract list idx)
   (define (extract-pvt entry (acc 1))
-;    (display entry)
-;    (display idx)
-;    (display acc)
     (cond
       ([empty? entry] null)
       ([= idx acc] [car entry])
       (else (extract-pvt (cdr entry) (+ acc 1)))))
-
   (extract-pvt list))
                        
-  
-  
 ;; Transform a list of lines into a list of columns
 (define (compute-columns list length)
   ;; Compute the n-th column of the whole table
@@ -109,6 +103,10 @@
    (* (truncate (/ line 3)) 3)
    (truncate (/ column 3))
    1))
+
+;; Common function for increment
+(define (increment number)
+  (+ number 1))
 
 ;; Add the singleton to the global list
 (define (add-singleton line column number visited-singleton)
@@ -420,6 +418,7 @@
  is-present-line
  is-present-column
  is-present-box
+ increment
  )
 
 
@@ -427,8 +426,8 @@
 ;; List of nine lines, tranformed
 
 ;; Global data
-(define lines (transformTable sampletable))
-(define singleton_list null)
+;(define lines (transformTable sampletable))
+;(define singleton_list null)
   
 ;;; List of nine columns, tranformed
 ;(define columns (transformTable (compute-columns sampletable 9)))

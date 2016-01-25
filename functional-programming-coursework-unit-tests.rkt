@@ -34,6 +34,15 @@
                 (define test-list `(1 2 3))
                 (check-equal? (extract test-list 2) 2 "Extract the middle one"))))
 
+(define increment-tests
+  (test-suite "increment-tests"
+              
+              (test-case "Single increment"
+                (check-equal? (increment 1) 2))
+              
+              (test-case "Double increment"
+                (check-equal? (increment (increment 1)) 3))))
+
 (define compute-columns-tests
   (test-suite "compute-columns-tests"
               (test-case "Compute a simple table"
@@ -390,7 +399,8 @@
 ;; Run tests
 ;(run-tests  get-tests)
 ;(run-tests transform-table-tests)
-(run-tests extract-tests)
+(run-tests increment-tests)
+;(run-test extract-tests)
 ;(run-tests compute-columns-tests)
 ;(run-tests compute-boxes-tests)
 ;(run-tests atom?-tests)
