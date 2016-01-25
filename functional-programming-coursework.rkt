@@ -394,8 +394,8 @@
 ;; =================================================================================
 
 ;; MAIN TEST
-;(define lines (transformTable sampletable))
-;(first-step lines (find-singleton lines null))
+(define lines (transformTable sampletable))
+(first-step lines (find-singleton lines null))
 
 
 

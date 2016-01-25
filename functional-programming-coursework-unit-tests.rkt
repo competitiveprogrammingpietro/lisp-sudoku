@@ -284,14 +284,14 @@
 
               (test-case "Return all the singleton in the right order"
                          (define list-input `(
-                                              ((1 2 3) 1 (1 2))
+                                              (5 1 (1 2))
                                               ((1 2 3) (1 2 3) 2)
                                               (3 (1 2 3) (1 2 3))
                                               ))
                          (define visited-singleton null)
                          (check-equal? (find-singleton list-input
                                         (find-singleton list-input
-                                                        (find-singleton list-input visited-singleton))) `((3 1 3) (2 3 2) (1 2 1))))
+                                                        (find-singleton list-input visited-singleton))) `((3 1 3) (2 3 2) (1 2 1) (1 1 5))))
               ))
              
 (define remove-singleton-table-box-tests
