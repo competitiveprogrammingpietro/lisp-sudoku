@@ -373,8 +373,14 @@
     line singleton))
 
 (define (first-step table singleton-list)
+  (display "first-step")
+
+  (display singleton-list)
+  
   (if (not singleton-list)
-      table
+      (display "End")
+      ;table
+      
       ;; Recursive step with an reduced table
       (first-step
        (reduce
