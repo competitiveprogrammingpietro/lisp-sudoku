@@ -1,4 +1,5 @@
 #lang racket
+(require racket/trace)
 (define sampletable `(
                  [0 2 5 0 0 1 0 0 0]
                  [1 0 4 2 5 0 0 0 0]
@@ -130,31 +131,30 @@
       #f))
   
 (define (find-singleton entry visited-singleton)
-
-  
-  (define (find-singleton-line-pvt line (indexc 1))
-    (cond
-      ([empty? line] #f)
-      ([atom? (car line)] [list indexc (car line)])
-      (else (find-singleton-line-pvt (cdr line) (increment indexc)))))
-
   (define (find-singleton-table-pvt table (indexl 1))
+    (define (find-singleton-line-pvt line (indexc 1))
+      (cond
+        ([empty? line] #f)
+        ([atom? (car line)]
+         ;; Check if the just found number is already present in the singletons' list
+         [let ([singleton-found (is-singleton-present (list indexl indexc (car line)) visited-singleton)])
+           ;; New singleton discovered 
+           (if (equal? singleton-found #f) 
+               (list indexl indexc (car line))
+               ;; This singleton had already been discovered
+               (find-singleton-line-pvt (cdr line) (increment indexc)))])
+        ;; No singleton found at this line
+        (else (find-singleton-line-pvt (cdr line) (increment indexc)))))
+
     (if (empty? table) #f
-        (let ([singleton-found (find-singleton-line-pvt (car table))])
-          (cond
-
-            ;; Two possibilities lead to the recursive call
-            ;; 1) Singleton not found
-            ;; 2) Singleton found but already present
-            ([or (equal? #f singleton-found)
-                 (equal? (is-singleton-present (cons indexl singleton-found) visited-singleton) #t)]
-             (find-singleton-table-pvt (cdr table) (increment indexl)))
-            
-            ;; Return the new list of singletons, that is, the new singleton element
-            ;; added at the beginning of the visited-singleton list
-            (else (cons (cons indexl singleton-found)
-                        visited-singleton))))))
-
+        (let ([singleton-found-line (find-singleton-line-pvt (car table))])
+          ;; No singleton (or no *new* singleton) found at this line, recursive call
+          (if [equal? #f singleton-found-line]
+              (find-singleton-table-pvt (cdr table) (increment indexl))
+              ;; Return the new list of singletons, that is, the new singleton element
+              ;; added at the beginning of the visited-singleton list
+              (cons singleton-found-line visited-singleton)))))
+  
   ;; Function entry point
   (find-singleton-table-pvt entry))
   
@@ -373,13 +373,8 @@
     line singleton))
 
 (define (first-step table singleton-list)
-  (display "first-step")
-
-  (display singleton-list)
-  
   (if (not singleton-list)
-      (display "End")
-      ;table
+      table
       
       ;; Recursive step with an reduced table
       (first-step

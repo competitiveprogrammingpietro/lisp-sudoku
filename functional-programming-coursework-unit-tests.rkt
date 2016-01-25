@@ -255,6 +255,7 @@
 
 (define find-singleton-tests
   (test-suite "find-singleton"
+              
               (test-case "Find the only singleton of a 3x3 table"
                          (define list-input `(
                                               ((1 2 3) (1 2 3)  (1 2 3))
@@ -263,7 +264,6 @@
                                               ))
                            (define visited-singleton null)
                            (check-equal? (find-singleton list-input visited-singleton) `((2 3 1))))
-
               (test-case "No singleton present"
                          (define list-input `(
                                               ((1 2 3) (1 2 3) (1 2))
@@ -289,9 +289,12 @@
                                               (3 (1 2 3) (1 2 3))
                                               ))
                          (define visited-singleton null)
-                         (check-equal? (find-singleton list-input
-                                        (find-singleton list-input
-                                                        (find-singleton list-input visited-singleton))) `((3 1 3) (2 3 2) (1 2 1) (1 1 5))))
+                         (check-equal?
+                          (find-singleton list-input
+                                          (find-singleton list-input
+                                                          (find-singleton list-input
+                                                                          (find-singleton list-input visited-singleton))))
+                          `((3 1 3) (2 3 2) (1 2 1) (1 1 5))))
               ))
              
 (define remove-singleton-table-box-tests
