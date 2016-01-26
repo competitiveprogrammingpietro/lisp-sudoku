@@ -405,7 +405,8 @@
      (is-present-other-sets-line (list-ref table (- line-idx 1)))
      (is-present-other-sets-column table)))
 ;(trace is-present-other-sets)  
-                                      
+
+
   
 
 ;; =================================================================================
