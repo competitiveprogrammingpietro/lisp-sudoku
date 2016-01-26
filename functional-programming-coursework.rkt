@@ -351,7 +351,67 @@
 
   ;(pvt boxes-table 1))
   (is-present-box-pvt (drop (take boxes-table boxidx) (- boxidx 1)) 1))
+
+
+
+;; =================================================================================
+;; SECOND STEP
+;; =================================================================================
+(define (is-present-other-sets line-idx column-idx table number)
+  (define (is-present-other-sets-line line (column 1))
+    (cond
+      ([null? line] #f)
+
+      ;; Recursive step if
+      ;; 1) the item is an atom
+      ;; 2) the column matches the index of the one being under check
+      ;; 3) set does not contain the number i.e count = 0
+      ([or (atom? (car line))
+           (= column column-idx)
+           (= (count (lambda (item) (= item number)) (car line)) 0)]
+       (is-present-other-sets-line (cdr line) (increment column)))
+
+      ;; True otherwise
+      (else #t)))
+
+  (define (is-present-other-sets-column table (line 1))
+    (cond
+      ([null? table] #f)
+      (else
+
+       ;; Bound item to the line's column (COI) :-)
+       (let ((item (list-ref (car table) (- column-idx 1))))
+         (display item)
+         (cond
+           
+           ;; 1) The line's item is an atom
+           ;; 2) This line's column has not to be considered
+           ;; 3) This line's column set does not contain the number
+           ;; If one of them is true make the recursive call
+           ([or (atom? item)
+                (= line line-idx)
+                (= (count (lambda (x) (= x number)) item) 0)]
+            (is-present-other-sets-column (cdr table) (increment line)))
+
+           ;; Otherwise the number was present in the line's column's set
+           (else #t))))))
+           
     
+;  (trace is-present-other-sets-line)
+;  (trace is-present-other-sets-column)
+
+  ;; Test against the line and column
+    (or
+     (is-present-other-sets-line (list-ref table (- line-idx 1)))
+     (is-present-other-sets-column table)))
+;(trace is-present-other-sets)  
+                                      
+  
+
+;; =================================================================================
+;; SECOND STEP END
+;; =================================================================================
+
 ;; =================================================================================
 ;; FIRST STEP
 ;; =================================================================================
@@ -389,8 +449,8 @@
 ;; =================================================================================
 
 ;; MAIN TEST
-(define lines (transformTable sampletable))
-(first-step lines (find-singleton lines null))
+;(define lines (transformTable sampletable))
+;(first-step lines (find-singleton lines null))
 
 
 
@@ -418,7 +478,9 @@
  is-present-line
  is-present-column
  is-present-box
- increment)
+ increment
+ is-present-other-sets
+ )
 
 
 ;; Kind of a real beginning

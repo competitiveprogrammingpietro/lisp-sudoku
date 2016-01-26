@@ -154,8 +154,42 @@
                          (check-equal? (is-present-box list-input 3 1 2) #t))
                          ))
 
+;; =================================================================================
+;; SECOND STEP TESTS
+;; =================================================================================
+(define second-step-tests
+  (test-suite "second-step-tests"
+              (test-case "Another set with the number 1 other than the (1,1) cell is in the same line at (1, 3)"
+                          (define list-input `(((1 2) 2 (1 2))
+                                               ((3 4) (3 4) 3)
+                                               ((3 4) (3 4) 8))
+                            )
+                          (check-equal? (is-present-other-sets 1 1 list-input 2) #t))
+              
+              (test-case "Another set with the number 1 other than the (1,1) cell is in the same column at (3, 1)"
+                (define list-input `(
+                                     ((1 2) 2 (3 4))
+                                     ((3 4) (3 4) 3)
+                                     ((1 4) (3 4) 8)
+                                     )
+                            )
+                (check-equal? (is-present-other-sets 1 1 list-input 3) #t))
+              (test-case "The set at (1, 1) is the only one to contains the number 1"
+                (define list-input `(
+                                     ((1 2) 2 (3 4))
+                                     ((3 4) (3 4) 3)
+                                     ((3 4) (3 4) 8)
+                                     )
+                            )
+                (check-equal? (is-present-other-sets 1 1 list-input 1) #f))))
 
-(run-tests is-present-box-tests)
+
+;; =================================================================================
+;; SECOND TESTS END
+;; =================================================================================
+
+(run-tests second-step-tests)
+;(run-tests is-present-box-tests)
 ;(run-tests is-present-line-tests)
 ;(run-tests reduce-tests)
 ;(run-tests is-present-column-tests)
