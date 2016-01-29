@@ -381,7 +381,6 @@
 
        ;; Bound item to the line's column (COI) :-)
        (let ((item (list-ref (car table) (- column-idx 1))))
-         (display item)
          (cond
            
            ;; 1) The line's item is an atom
@@ -395,16 +394,69 @@
 
            ;; Otherwise the number was present in the line's column's set
            (else #t))))))
-           
-    
+
+  
+  (define (is-present-other-sets-box reducted-table start-line start-column (accx 1))
+    (define (is-present-other-sets-box-line reducted-table-line (accy 1))
+      (cond
+
+        ;; End and not found
+        ([null? reducted-table-line] #f)
+
+        ;; Same one or not found, recursive step
+        ([or
+          (and (= accy column-idx) (= line-idx accx))
+          (not (member number (car reducted-table-line)))]
+         (is-present-other-sets-box-line (cdr reducted-table-line) (increment accy)))
+
+        ;; We have found it
+        (else
+         #t)))
+
+;    (trace is-present-other-sets-box-line)
+    (cond
+      ([null? reducted-table] #f)
+      
+       ;; element is not a set then recursive case
+       ([atom? (car reducted-table)]
+        (is-present-other-sets-box (cdr reducted-table) start-line start-column (increment accx)))
+
+       ;; Check if we have found it
+       ([is-present-other-sets-box-line (car reducted-table)]
+         #t)
+
+       ;; Recursive step again
+       (else
+        (is-present-other-sets-box (cdr reducted-table) start-line start-column (increment accx)))
+       ))
 ;  (trace is-present-other-sets-line)
 ;  (trace is-present-other-sets-column)
-
+ ; (trace is-present-other-sets-box)
   ;; Test against the line and column
+  (let*
+      
+      ;; Bindings
+      (
+       [start-line (truncate (/ (- line-idx 1) 3))]
+       [start-column (* 3 (truncate (/ (- column-idx 1) 3)))]
+
+       ;; Build a list representing the box
+       [reducted-table-lines (take (drop table start-line) 3)]
+       [reducted-table-line-one (take (drop (car reducted-table-lines) start-column) 3)]
+       [reducted-table-line-two (take (drop (car (cdr reducted-table-lines)) start-column) 3)]
+       [reducted-table-line-three (take (drop (car (cdr (cdr reducted-table-lines))) start-column) 3)]
+       [reducted-table (list reducted-table-line-one reducted-table-line-two reducted-table-line-three)]
+       )
+    
+    ;; Body
     (or
      (is-present-other-sets-line (list-ref table (- line-idx 1)))
-     (is-present-other-sets-column table)))
-;(trace is-present-other-sets)  
+     (is-present-other-sets-column table)
+
+     ;; Passing at the function the coordinated of the top-left corner of the box
+     (is-present-other-sets-box reducted-table (* start-line 3) (* start-column 3)))
+    ))
+ 
 
 
   
