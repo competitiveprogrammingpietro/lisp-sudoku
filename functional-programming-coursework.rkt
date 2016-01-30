@@ -11,18 +11,21 @@
                  [0 0 0 0 7 8 1 0 3]
                  [0 0 0 6 0 0 5 9 0]))
 
-;; Transform an entire table
+;; Transform an entire table to
 (define (transformTable table)
+  
   ;; Transform a single number
   (define (transformNumber x)
     (if (> x 0)
         x
-        (apply list `(1 2 3 4 5 6 7 8 9))))
+        (list `(1 2 3 4 5 6 7 8 9))))
+
   ;; Transform an entire row
   (define (transformRaw x)
     (if (empty? x)
         null
         (cons (transformNumber (car x)) (transformRaw (cdr x)))))
+  
   ;; Use above functions to expand the whole table
   (if (empty? table)
       null
@@ -357,6 +360,10 @@
 ;; =================================================================================
 ;; SECOND STEP
 ;; =================================================================================
+
+;; Checks if there is a set other than the one specified by the coordinates (line-idx, column-idx)
+;; containing a specific number, this function it is used to check if it is possible to reduce
+;; a set to a singleton.
 (define (is-present-other-sets line-idx column-idx table number)
   (define (is-present-other-sets-line line (column 1))
     (cond
