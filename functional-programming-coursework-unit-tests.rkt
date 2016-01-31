@@ -5,20 +5,26 @@
 
 (define transform-table-tests
   (test-suite "transformTableTests"  
+
               (test-case "Nothing gets expanded when it is not required"
                           (define sampleTransformTableInputOne `((1 2 3 4 5 6 7 8 9)))
                           (define sampleTransformTableOuputOne `((1 2 3 4 5 6 7 8 9)))
-                          (check-equal? (transformTable sampleTransformTableInputOne) sampleTransformTableOuputOne "Nothing to expand test transformTable"))
+                          (check-equal? (transformTable sampleTransformTableInputOne)
+                                        sampleTransformTableOuputOne
+                                        "Nothing to expand test transformTable"))
+              
               (test-case "A correct expansions is performed when it's required"
                            (define sampleTransformTableInputTwo `(
-                                                     (0 2 3 4 5 6 7 8 9)
-                                                     (1 2 3 4 5 6 7 8 9)
-                                                     ))
+                                                                  (0 2 3 4 5 6 7 8 9)
+                                                                  (1 2 3 4 5 6 7 8 9)
+                                                                  ))
                            (define sampleTransformTableOuputTwo `(
                                                                   ((1 2 3 4 5 6 7 8 9) 2 3 4 5 6 7 8 9)
                                                                   (1 2 3 4 5 6 7 8 9)
                                                                   ))
-                         (check-equal? (transformTable sampleTransformTableInputTwo) sampleTransformTableOuputTwo "Expanded incorrectly test transformTable"))))
+                           (check-equal? (transformTable sampleTransformTableInputTwo)
+                                         sampleTransformTableOuputTwo
+                                         "Expanded incorrectly test transformTable"))))
 
 (define extract-tests
   (test-suite "extract-tests"
@@ -383,22 +389,24 @@
 ;(find-singleton list-input (find-singleton list-input (find-singleton list-input visited-singleton)))
 
 ;; Run tests
-;(run-tests  get-tests)
-;(run-tests transform-table-tests)
-;(run-tests increment-tests)
-;(run-test extract-tests)
-;(run-tests compute-columns-tests)
-;(run-tests compute-boxes-tests)
-;(run-tests atom?-tests)
+(run-tests  get-tests)
+(run-tests transform-table-tests)
+(run-tests increment-tests)
+(run-test extract-tests)
+(run-tests compute-columns-tests)
+(run-tests compute-boxes-tests)
+(run-tests atom?-tests)
 (run-tests find-singleton-tests)
-;(run-tests add-singleton-tests)
-;(run-tests is-singleton-present-tests)
+(run-tests add-singleton-tests)
+(run-tests is-singleton-present-tests)
 ;(run-tests remove-singleton-tests)
 ;(run-tests remove-singleton-list-tests)
 ;(run-tests remove-singleton-column-tests)
 ;(run-tests remove-singleton-table-column-tests)
 ;(run-tests remove-singleton-table-line-tests)
 ;(run-tests remove-singleton-table-box-tests)
+
+
 ; This row represents all the possibilities, that is, all the numbers from 1 to 9
 (define TBD `(1 2 3 4 5 6 7 8 9))
 
