@@ -383,68 +383,46 @@
                          (check-equal? (get-column list-input) 2)
                          (check-equal? (get-line list-input) 1))))
 
+(define operate-on-coordinates-till-true-tests
+  (test-suite "operate-on-coordinates-till-true"
+              (test-case "Return the first number equals to three which is at (9,9)"
+                (define list-input `(
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 3)
+                                     ))
+                (define (custom-func line column number)
+                  (if (= number 3)
+                      (cons line column)
+                      #f))
+                (check-equal? (operate-on-coordinates-till-true custom-func list-input) `(9 . 9)))))
 
-;(find-singleton list-input visited-singleton)
-;(find-singleton list-input (find-singleton list-input visited-singleton))
-;(find-singleton list-input (find-singleton list-input (find-singleton list-input visited-singleton)))
 
-;; Run tests
-(run-tests  get-tests)
-(run-tests transform-table-tests)
-(run-tests increment-tests)
-(run-test extract-tests)
-(run-tests compute-columns-tests)
-(run-tests compute-boxes-tests)
-(run-tests atom?-tests)
-(run-tests find-singleton-tests)
-(run-tests add-singleton-tests)
-(run-tests is-singleton-present-tests)
-;(run-tests remove-singleton-tests)
+;; Generic tests
+;(run-tests transform-table-tests)
+;(run-tests increment-tests)
+;(run-test extract-tests)
+;(run-tests compute-columns-tests)
+;(run-tests compute-boxes-tests)
+;(run-tests atom?-tests)
+(run-tests operate-on-coordinates-till-true-tests)
+
+;; Algorithm's first step tests
+;(run-tests find-singleton-tests)
 ;(run-tests remove-singleton-list-tests)
 ;(run-tests remove-singleton-column-tests)
 ;(run-tests remove-singleton-table-column-tests)
 ;(run-tests remove-singleton-table-line-tests)
 ;(run-tests remove-singleton-table-box-tests)
+;(run-tests add-singleton-tests)
+;(run-tests is-singleton-present-tests)
+;(run-tests  get-tests)
 
 
-; This row represents all the possibilities, that is, all the numbers from 1 to 9
-(define TBD `(1 2 3 4 5 6 7 8 9))
 
-(define TEST `(
-               ; 1
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
-               ; 2
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
-               ; 3
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
-               ; 4
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) 9)
-               ; 5
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
-               ; 6
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
-               ; 7
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
-               ; 8
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))
-               ; 9
-               ((1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9)
-                (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9) (1 2 3 4 5 6 7 8 9))              
-               ))
