@@ -18,7 +18,7 @@
   (define (transformNumber x)
     (if (> x 0)
         x
-        (list `(1 2 3 4 5 6 7 8 9))))
+        `(1 2 3 4 5 6 7 8 9)))
 
   ;; Transform an entire row
   (define (transformRaw x)
@@ -31,6 +31,8 @@
       null
       (cons (transformRaw (car table)) (transformTable (cdr table)))))
 
+
+;;; =============== RUBBISH ?
 ;; Extract the n-th element from a list
 (define (extract list idx)
   (define (extract-pvt entry (acc 1))
@@ -96,9 +98,11 @@
   (if (> acc 8)
       null
       (cons (compute-box (compute-line entry acc) acc) (compute-boxes entry (+ acc 1)))))
-
+;================= END RUBBISH
 
 ;; Utility functions
+
+;;TODO: There is the pair? operator!
 (define (atom? x)
   (not (or (pair? x) (null? x))))
 
@@ -358,6 +362,84 @@
 
 
 ;; =================================================================================
+;; UTILITY FUNCTION FOR OPERATING ON COORDINATES
+;; =================================================================================
+
+;; For each table's cell call the func table with the following parameter
+;; (func line column table[line*stride + column])
+(define (operate-on-coordinates-till-true func table)
+  
+  (define (pvt-line table (line-idx 1))
+
+    (define (pvt-column line (column-idx 1))
+      ; Termination condition
+      (if (null? line) #f
+          ; Otherwise we check the func returned value
+          (let ([result (func  line-idx column-idx (car line))])
+            ; Function retured true, stop
+            (if result
+                result
+                ; Else: recursive call
+                (pvt-column (cdr line) (increment column-idx))))))
+
+;    (trace pvt-column)
+    
+    (if (null? table) #f
+        (let ([result (pvt-column (car table))])
+          (if (not result)
+              (pvt-line (cdr table) (increment line-idx))
+              result))))
+   ; (trace pvt-line)
+  ;  (trace func)
+  (pvt-line table))
+  
+
+
+;; =================================================================================
+;; FIRST STEP
+;; =================================================================================
+(define (get-line singleton-list)
+  (car (car singleton-list)))
+
+(define (get-column singleton-list)
+  (car (cdr (car singleton-list))))
+
+(define (get-number singleton-list)
+  (car (cdr (cdr (car singleton-list)))))
+
+(define (reduce table singleton line column)
+  (define box-number (box-index line column))
+  (remove-singleton-table-line
+    (remove-singleton-table-column
+     (remove-singleton-table-box table box-number singleton)
+     column singleton)
+    line singleton))
+
+;; TODO: unit test
+(define (first-step-single table singleton-list)
+  (let ([current-step-singleton-list (find-singleton table singleton-list)])
+    (reduce table
+            (get-number current-step-singleton-list)
+            (get-line current-step-singleton-list)
+            (get-column current-step-singleton-list))))  
+         
+(define (first-step table singleton-list)
+  (if (not singleton-list)
+      table
+      
+      ;; Recursive step with an reduced table
+      (first-step
+       (reduce
+        table
+        (get-number singleton-list)
+        (get-line singleton-list)
+        (get-column singleton-list))
+       (find-singleton table singleton-list))))
+;; =================================================================================
+;; END FIRST STEP
+;; =================================================================================
+
+;; =================================================================================
 ;; SECOND STEP
 ;; =================================================================================
 
@@ -386,7 +468,7 @@
       ([null? table] #f)
       (else
 
-       ;; Bound item to the line's column (COI) :-)
+       ;; Bound item to the line's column
        (let ((item (list-ref (car table) (- column-idx 1))))
          (cond
            
@@ -463,53 +545,41 @@
      ;; Passing at the function the coordinated of the top-left corner of the box
      (is-present-other-sets-box reducted-table (* start-line 3) (* start-column 3)))
     ))
- 
 
 
+;; The format of the set-singleton-list is;
+;; (line, column, (list of set's number already examined)
+#|
+(define (find-set-singleton table set-singleton-list)
   
+  
+  (define (find-set-singleton-pvt line column item)
 
+    ;; We only consider sets
+    (when (atom? item)
+      #f)
+
+    ;; Make sure this set hasn't been already througly examined 
+    (when (ormap
+           (lambda (x)
+             ((if (and (= (list-ref x 0) line)
+                       (= (cdr x) column)
+                       
+                       )
+
+  |#                
+                        
+    
+    
+        
+    
 ;; =================================================================================
 ;; SECOND STEP END
 ;; =================================================================================
 
-;; =================================================================================
-;; FIRST STEP
-;; =================================================================================
-(define (get-line singleton-list)
-  (car (car singleton-list)))
-
-(define (get-column singleton-list)
-  (car (cdr (car singleton-list))))
-
-(define (get-number singleton-list)
-  (car (cdr (cdr (car singleton-list)))))
-
-(define (reduce table singleton line column)
-  (define box-number (box-index line column))
-  (remove-singleton-table-line
-    (remove-singleton-table-column
-     (remove-singleton-table-box table box-number singleton)
-     column singleton)
-    line singleton))
-
-(define (first-step table singleton-list)
-  (if (not singleton-list)
-      table
-      
-      ;; Recursive step with an reduced table
-      (first-step
-       (reduce
-        table
-        (get-number singleton-list)
-        (get-line singleton-list)
-        (get-column singleton-list))
-       (find-singleton table singleton-list))))
-;; =================================================================================
-;; END FIRST STEP
-;; =================================================================================
-
 ;; MAIN TEST
 ;(define lines (transformTable sampletable))
+;(first-step-single lines null)
 ;(first-step lines (find-singleton lines null))
 
 
@@ -540,32 +610,7 @@
  is-present-box
  increment
  is-present-other-sets
+ operate-on-coordinates-till-true
  )
 
 
-;; Kind of a real beginning
-;; List of nine lines, tranformed
-
-;; Global data
-;(define lines (transformTable sampletable))
-;(define singleton_list null)
-  
-;;; List of nine columns, tranformed
-;(define columns (transformTable (compute-columns sampletable 9)))
-;;; List of nine boxes, tranformed
-;(define boxes (transformTable (compute-boxes sampletable 0)))
-;(first-step lines columns boxes (find-singleton lines null))
-;
-;(find-singleton lines)
-;(writeln line-number)
-;(writeln column-number)
-;(writeln (box-index (- line-number 1) (- column-number 1)))
-;(writeln singleton-number)
-;(remove-singleton lines singleton-number (- line-number 1))
-
-;(find-singleton lines)
-;(writeln line-number)
-;(writeln column-number)
-;(writeln singleton-number)
-;(remove-singleton lines singleton-number (- line-number 1))
-;(first-step lines columns boxes)
