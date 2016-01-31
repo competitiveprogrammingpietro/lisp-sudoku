@@ -383,7 +383,7 @@
                          (check-equal? (get-column list-input) 2)
                          (check-equal? (get-line list-input) 1))))
 
-(define operate-on-coordinates-till-true-tests
+(define or-on-coordinate-tests
   (test-suite "operate-on-coordinates-till-true"
               (test-case "Return the first number equals to three which is at (9,9)"
                 (define list-input `(
@@ -401,8 +401,47 @@
                   (if (= number 3)
                       (cons line column)
                       #f))
-                (check-equal? (operate-on-coordinates-till-true custom-func list-input) `(9 . 9)))))
+                (check-equal? (or-on-coordinate custom-func list-input) `(9 . 9)))))
 
+(define or-on-line-tests
+  (test-suite "or-on-coordinates-line"
+              (test-case "Return the first number equals to three at line 4th which is at (4 . 5)"
+                (define list-input `(
+                                     (0 0 1 0 0 0 0 5 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 5 0 0 0 0) ;; Wanted line
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 5 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 0)
+                                     (0 0 0 0 0 0 0 0 3)
+                                     ))
+                (define (custom-func column number)
+                  (if (= number 5)
+                      (cons 4 column)
+                      #f))
+                (check-equal? (or-on-line custom-func list-input 4) `(4 . 5)))))
+
+(define or-on-column-tests
+  (test-suite "or-on-coordinates-line"
+              (test-case "Return the first number equals to three at column 7th which is at (4 . 7)"
+                (define list-input `(
+                                     (1 0 0 0 0 0 0 0 0)
+                                     (2 0 0 0 0 0 0 0 0)
+                                     (3 0 0 0 0 0 0 0 0)
+                                     (4 0 0 0 5 0 5 0 0)
+                                     (5 0 0 0 3 0 0 0 0)
+                                     (6 0 0 0 0 0 0 0 0)
+                                     (7 0 0 0 0 0 0 0 0)
+                                     (8 0 0 0 0 0 0 0 0)
+                                     (9 0 0 0 0 0 0 0 3)
+                                     ))
+                (define (custom-func line item)
+                  (if (= item 5)
+                      (cons line 7)
+                      #f))
+                (check-equal? (or-on-column custom-func list-input 7) `(4 . 7)))))
 
 ;; Generic tests
 ;(run-tests transform-table-tests)
@@ -411,7 +450,9 @@
 ;(run-tests compute-columns-tests)
 ;(run-tests compute-boxes-tests)
 ;(run-tests atom?-tests)
-(run-tests operate-on-coordinates-till-true-tests)
+(run-tests or-on-coordinate-tests)
+(run-tests or-on-line-tests)
+(run-tests or-on-column-tests)
 
 ;; Algorithm's first step tests
 ;(run-tests find-singleton-tests)
@@ -421,7 +462,7 @@
 ;(run-tests remove-singleton-table-line-tests)
 ;(run-tests remove-singleton-table-box-tests)
 ;(run-tests add-singleton-tests)
-;(run-tests is-singleton-present-tests)
+(run-tests is-singleton-present-tests)
 ;(run-tests  get-tests)
 
 

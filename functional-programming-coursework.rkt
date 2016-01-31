@@ -32,76 +32,6 @@
       (cons (transformRaw (car table)) (transformTable (cdr table)))))
 
 
-;;; =============== RUBBISH ?
-;; Extract the n-th element from a list
-(define (extract list idx)
-  (define (extract-pvt entry (acc 1))
-    (cond
-      ([empty? entry] null)
-      ([= idx acc] [car entry])
-      (else (extract-pvt (cdr entry) (+ acc 1)))))
-  (extract-pvt list))
-                       
-;; Transform a list of lines into a list of columns
-(define (compute-columns list length)
-  ;; Compute the n-th column of the whole table
-  (define (nth-column list idx)
-    (if (empty? list)
-        null
-        (cons (extract (car list) idx) (nth-column (cdr list) idx))))
-  ;; Compute a list of column from a list of lines
-  ;; the accumulator specifies the length of the list
-  (define (compute-columns-r list length)
-    (if (= length 0)
-        null
-        (cons (nth-column list length) (compute-columns-r list (- length 1)))))
-  ;; Return the reverse of it
-  (reverse (compute-columns-r list length)))
-
-;; List of lines into lists of boxes of a fixed size
-(define (compute-boxes entry acc)
-  (define (compute-offset index)
-    (if (> index 8)
-        -1
-        (* (modulo index 3) 3)))
-  (define (compute-raw index)
-    (if (> index 8)
-        -1
-        (* (truncate (/ index 3)) 3)))
-
-  ;; Return a pointer to the first line
-  ;; which is included in the index-th box
-  (define (compute-line entry index)
-    (if (empty? entry)
-        null
-        (drop entry (compute-raw index))))
-
-  ;; Return a pointer to the first element
-  ;; of that line contained in the index-th
-  ;; box
-  ;; The entry parameter points to the line
-  ;; number (index / 3) * 3
-  (define (compute-line-offset entry index)
-    (drop entry (compute-offset index)))
-  
-  ;; Create a single box given the pointer
-  (define (compute-box entry index)
-    (define (compute-box-pvt entry index)
-      ;; Why do I need that ?
-      (apply append
-             (list 
-              (take (compute-line-offset (car entry) index) 3)
-              (take (compute-line-offset (car (cdr entry)) index) 3)
-              (take (compute-line-offset (car (cdr (cdr entry))) index) 3))))
-    (compute-box-pvt entry index))
-  
-  (if (> acc 8)
-      null
-      (cons (compute-box (compute-line entry acc) acc) (compute-boxes entry (+ acc 1)))))
-;================= END RUBBISH
-
-;; Utility functions
-
 ;;TODO: There is the pair? operator!
 (define (atom? x)
   (not (or (pair? x) (null? x))))
@@ -332,6 +262,7 @@
   (pvt table 1))
 
 ;; Search boxes, not the most efficient due to the copy
+;; TODO: this where start from next time
 (define (is-present-box table number lineidx columnidx)
   (define boxidx (box-index lineidx columnidx))
   (define boxes-table (compute-boxes table 0))
@@ -362,12 +293,12 @@
 
 
 ;; =================================================================================
-;; UTILITY FUNCTION FOR OPERATING ON COORDINATES
+;; UTILITY FUNCTION WORKING WITH COORDINATES
 ;; =================================================================================
 
-;; For each table's cell call the func table with the following parameter
-;; (func line column table[line*stride + column])
-(define (operate-on-coordinates-till-true func table)
+
+;; For each table's cell  (func line column table[line*stride + column])
+(define (or-on-coordinate func table)
   
   (define (pvt-line table (line-idx 1))
 
@@ -382,18 +313,48 @@
                 ; Else: recursive call
                 (pvt-column (cdr line) (increment column-idx))))))
 
-;    (trace pvt-column)
+    ;(trace pvt-column)
     
     (if (null? table) #f
         (let ([result (pvt-column (car table))])
           (if (not result)
               (pvt-line (cdr table) (increment line-idx))
               result))))
-   ; (trace pvt-line)
-  ;  (trace func)
+    ;(trace pvt-line)
+    ;(trace func)
   (pvt-line table))
   
+;; Executes func for each cell such that {table[line-index[0]] .. table[line-index[N]]}
+;; where N {0 .. line-size}
+;; (func index table[line-index[index]])
+(define (or-on-line func table line-index)
+  
+  (define (pvt-line line (column-index 1))
+    ;; End of the line
+    (if (null? line)
+        #f
+        (let ([result (func column-index (car line))])
+          (if result
+              result
+              (pvt-line (cdr line) (increment column-index))))))
 
+  (pvt-line (list-ref table (- line-index 1))))
+
+;; Executes func for each cell such that {table[0[column-index]] ... table[N[column-index]]}
+;; where N {0 .. table-size}
+;; (func index table[current-line[column-index]])
+
+(define (or-on-column func table column-index)
+  (define (pvt-line line (line-index 1))
+
+    ;; End of table
+    (if (null? line)
+        #f
+        (let ([result (func line-index (list-ref (car line) (- column-index 1)))])
+          (if result
+              result
+              (pvt-line (cdr line) (increment line-index))))))
+  (pvt-line table))
 
 ;; =================================================================================
 ;; FIRST STEP
@@ -447,130 +408,59 @@
 ;; containing a specific number, this function it is used to check if it is possible to reduce
 ;; a set to a singleton.
 (define (is-present-other-sets line-idx column-idx table number)
-  (define (is-present-other-sets-line line (column 1))
-    (cond
-      ([null? line] #f)
-
-      ;; Recursive step if
-      ;; 1) the item is an atom
-      ;; 2) the column matches the index of the one being under check
-      ;; 3) set does not contain the number i.e count = 0
-      ([or (atom? (car line))
-           (= column column-idx)
-           (= (count (lambda (item) (= item number)) (car line)) 0)]
-       (is-present-other-sets-line (cdr line) (increment column)))
-
-      ;; True otherwise
-      (else #t)))
-
-  (define (is-present-other-sets-column table (line 1))
-    (cond
-      ([null? table] #f)
-      (else
-
-       ;; Bound item to the line's column
-       (let ((item (list-ref (car table) (- column-idx 1))))
-         (cond
-           
-           ;; 1) The line's item is an atom
-           ;; 2) This line's column has not to be considered
-           ;; 3) This line's column set does not contain the number
-           ;; If one of them is true make the recursive call
-           ([or (atom? item)
-                (= line line-idx)
-                (= (count (lambda (x) (= x number)) item) 0)]
-            (is-present-other-sets-column (cdr table) (increment line)))
-
-           ;; Otherwise the number was present in the line's column's set
-           (else #t))))))
-
-  
-  (define (is-present-other-sets-box reducted-table start-line start-column (accx 1))
-    (define (is-present-other-sets-box-line reducted-table-line (accy 1))
-      (cond
-
-        ;; End and not found
-        ([null? reducted-table-line] #f)
-
-        ;; Same one or not found, recursive step
-        ([or
-          (and (= accy column-idx) (= line-idx accx))
-          (not (member number (car reducted-table-line)))]
-         (is-present-other-sets-box-line (cdr reducted-table-line) (increment accy)))
-
-        ;; We have found it
-        (else
-         #t)))
-
-;    (trace is-present-other-sets-box-line)
-    (cond
-      ([null? reducted-table] #f)
-      
-       ;; element is not a set then recursive case
-       ([atom? (car reducted-table)]
-        (is-present-other-sets-box (cdr reducted-table) start-line start-column (increment accx)))
-
-       ;; Check if we have found it
-       ([is-present-other-sets-box-line (car reducted-table)]
-         #t)
-
-       ;; Recursive step again
-       (else
-        (is-present-other-sets-box (cdr reducted-table) start-line start-column (increment accx)))
-       ))
-;  (trace is-present-other-sets-line)
-;  (trace is-present-other-sets-column)
- ; (trace is-present-other-sets-box)
-  ;; Test against the line and column
-  (let*
-      
-      ;; Bindings
-      (
-       [start-line (truncate (/ (- line-idx 1) 3))]
-       [start-column (* 3 (truncate (/ (- column-idx 1) 3)))]
-
-       ;; Build a list representing the box
-       [reducted-table-lines (take (drop table start-line) 3)]
-       [reducted-table-line-one (take (drop (car reducted-table-lines) start-column) 3)]
-       [reducted-table-line-two (take (drop (car (cdr reducted-table-lines)) start-column) 3)]
-       [reducted-table-line-three (take (drop (car (cdr (cdr reducted-table-lines))) start-column) 3)]
-       [reducted-table (list reducted-table-line-one reducted-table-line-two reducted-table-line-three)]
-       )
+  (let* ([start-line (+ (truncate (/ (- line-idx 1) 3)) 1)]
+         [start-column (+ (* 3 (truncate (/ (- column-idx 1) 3))) 1)]
+         [end-line (+ start-line 2)]
+         [end-column (+ start-column 2)])
     
     ;; Body
     (or
-     (is-present-other-sets-line (list-ref table (- line-idx 1)))
-     (is-present-other-sets-column table)
 
+     ;; Check for another set in this line containing the same number
+     (or-on-line  (lambda (index cell)
+                    ;; Return false if
+                    ;; 1) the item is an atom
+                    ;; 2) the column matches the index of the one being under check
+                    ;; 3) set does not contain the number thus if count is zero
+                    (if [or (atom? cell)
+                            (= index column-idx)
+                            (= (count (lambda (item) (= item number)) cell) 0)]
+                        #f
+                        #t))
+                  table
+                  line-idx)
+     
+     ;; Check for another set in this column containing the same number
+     (or-on-column (lambda (index cell)
+                     (if [or
+                          (atom? cell)
+                          (= index line-idx)
+                          (= (count (lambda (item) (= item number)) cell) 0)]
+                         #f
+                         #t))
+                   table
+                   column-idx)
+                     
      ;; Passing at the function the coordinated of the top-left corner of the box
-     (is-present-other-sets-box reducted-table (* start-line 3) (* start-column 3)))
-    ))
-
-
-;; The format of the set-singleton-list is;
-;; (line, column, (list of set's number already examined)
-#|
-(define (find-set-singleton table set-singleton-list)
-  
-  
-  (define (find-set-singleton-pvt line column item)
-
-    ;; We only consider sets
-    (when (atom? item)
-      #f)
-
-    ;; Make sure this set hasn't been already througly examined 
-    (when (ormap
-           (lambda (x)
-             ((if (and (= (list-ref x 0) line)
-                       (= (cdr x) column)
-                       
-                       )
-
-  |#                
-                        
-    
-    
+     (or-on-coordinate (lambda (lindex cindex cell)
+                         (cond
+                           ; Not a set
+                           ([atom? cell] #f)
+                           ; Outside box's boundaries
+                           ([or
+                             ; Outside box's line boundaries
+                             (or (< lindex start-line) (> lindex end-line))
+                             ; Outsude box's column boundaries
+                             (or (< cindex start-column) (> cindex end-column))]
+                            #f)
+                           ; We are looking for a set other than this cell, skip it
+                           ([and (= lindex line-idx) (= cindex column-idx)] #f)
+                           ; It does not contain the target number
+                           ([not (member number cell)] #f)
+                           (else
+                            #t)))
+                       table))))
+        
         
     
 ;; =================================================================================
@@ -610,7 +500,9 @@
  is-present-box
  increment
  is-present-other-sets
- operate-on-coordinates-till-true
+ or-on-coordinate
+ or-on-line
+ or-on-column
  )
 
 

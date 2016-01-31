@@ -157,8 +157,8 @@
 ;; =================================================================================
 ;; SECOND STEP TESTS
 ;; =================================================================================
-(define second-step-tests
-  (test-suite "second-step-tests"
+(define is-present-other-set-tests
+  (test-suite "is-present-other-set-tests"
               
               (test-case "Check line: another set with the number 3 other than the (6,3) cell is at the same line at (6, 7)"
                 (define list-input `(
@@ -187,7 +187,7 @@
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
-                                     ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                     
                                      )
                   )
                 (check-equal? (is-present-other-sets 1 3 list-input 3) #t))
@@ -220,11 +220,10 @@
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      ((1 2) (3 4) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
-                                     ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (3 4) (1 2) (1 2))
-                                     )
+              )
                             )
                 (check-equal? (is-present-other-sets 1 3 list-input 3) #f))
-
+              
               (test-case "Box check: another set with the number 3 other than the (1,3) cell is present in the same box at (3, 1) others are in different boxes (8, 2) (9 6)"
 
                 (define list-input `(
@@ -237,7 +236,6 @@
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      ((1 2) (3 4) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
-                                     ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (3 4) (1 2) (1 2))
                                      )
                             )
                 (check-equal? (is-present-other-sets 1 3 list-input 3) #t))
@@ -267,8 +265,9 @@
 ;; SECOND TESTS END
 ;; =================================================================================
 
-(run-tests second-step-tests)
-;(run-tests is-present-box-tests)
-;(run-tests is-present-line-tests)
-;(run-tests reduce-tests)
-;(run-tests is-present-column-tests)
+;(run-tests second-step-tests)
+(run-tests is-present-other-set-tests)
+(run-tests is-present-box-tests)
+(run-tests is-present-line-tests)
+(run-tests reduce-tests)
+(run-tests is-present-column-tests)
