@@ -11,291 +11,11 @@
                  [0 0 0 0 7 8 1 0 3]
                  [0 0 0 6 0 0 5 9 0]))
 
-;; Transform an entire table to
-(define (transformTable table)
-  
-  ;; Transform a single number
-  (define (transformNumber x)
-    (if (> x 0)
-        x
-        `(1 2 3 4 5 6 7 8 9)))
-
-  ;; Transform an entire row
-  (define (transformRaw x)
-    (if (empty? x)
-        null
-        (cons (transformNumber (car x)) (transformRaw (cdr x)))))
-  
-  ;; Use above functions to expand the whole table
-  (if (empty? table)
-      null
-      (cons (transformRaw (car table)) (transformTable (cdr table)))))
-
-
-;;TODO: There is the pair? operator!
-(define (atom? x)
-  (not (or (pair? x) (null? x))))
-
-(define (box-index line column)
-  (+
-   (* (truncate (/ line 3)) 3)
-   (truncate (/ column 3))
-   1))
-
-;; Common function for increment
-(define (increment number)
-  (+ number 1))
-
-;; Add the singleton to the global list
-(define (add-singleton line column number visited-singleton)
-    (cons (list line column number) visited-singleton))
-
-
-
-;; =================================================================================
-;; FIND SINGLETON
-;; Return a list (line-number column-number item)
-;; Arguments :
-;;             entry : table
-;;             visited-singleton: list of already visited singleton in the format
-;;                                ((line, column, number) ....)
-;;         
-;; =================================================================================
-
-;; Check if a given singleton is already present in the global list
-(define (is-singleton-present triple visited-singleton)
-  (if (member triple visited-singleton) #t
-      #f))
-  
-(define (find-singleton entry visited-singleton)
-  (define (find-singleton-table-pvt table (indexl 1))
-    (define (find-singleton-line-pvt line (indexc 1))
-      (cond
-        ([empty? line] #f)
-        ([atom? (car line)]
-         ;; Check if the just found number is already present in the singletons' list
-         [let ([singleton-found (is-singleton-present (list indexl indexc (car line)) visited-singleton)])
-           ;; New singleton discovered 
-           (if (equal? singleton-found #f) 
-               (list indexl indexc (car line))
-               ;; This singleton had already been discovered
-               (find-singleton-line-pvt (cdr line) (increment indexc)))])
-        ;; No singleton found at this line
-        (else (find-singleton-line-pvt (cdr line) (increment indexc)))))
-
-    (if (empty? table) #f
-        (let ([singleton-found-line (find-singleton-line-pvt (car table))])
-          ;; No singleton (or no *new* singleton) found at this line, recursive call
-          (if [equal? #f singleton-found-line]
-              (find-singleton-table-pvt (cdr table) (increment indexl))
-              ;; Return the new list of singletons, that is, the new singleton element
-              ;; added at the beginning of the visited-singleton list
-              (cons singleton-found-line visited-singleton)))))
-  
-  ;; Function entry point
-  (find-singleton-table-pvt entry))
-  
-
-;; =================================================================================
-;; FIND SINGLETON END
-;; =================================================================================
-
-
-;; Handles a simple list, no pairs are admitted in here (GROUP)
-(define (remove-singleton-atom list number)
-  (if (empty? list)
-      null  
-      (if (= (car list) number)
-          (remove-singleton-atom (cdr list) number)
-          (cons (car list) (remove-singleton-atom (cdr list) number)))))
-
-;; Remove a singleton from a list's element, it acts as switch
-;; handling the case when the element is composed by a single element
-;; as well when it is composed by a list
-(define (remove-singleton-element entry number)
-  (if (atom? entry)
-      entry
-      (remove-singleton-atom entry number)))
-
-;; =================================================================================
-;; REMOVE SINGLETON FROM A LIST
-;; =================================================================================
-(define (remove-singleton entry number index)
-  (define acc 0)
-  ;; Removes the singleton from a single list composed ONLY by atoms
-  (define (remove-singleton-atom list)
-    (if (empty? list)
-        null  
-        (if (= (car list) number)
-            (remove-singleton-atom (cdr list))
-            (cons (car list) (remove-singleton-atom (cdr list))))))
-  ;; Remove the singleton from a list which represents a row, column, box
-  ;; Please note that singleton elements are not removed from the "first level" list
-  (define (remove-singleton-line list)
-    (cond ((empty? list) null)
-          ((atom? (car list)) (cons (car list) (remove-singleton-line (cdr list))))
-          (else (cons (remove-singleton-atom (car list)) (remove-singleton-line (cdr list))))))
-  ;; Skip all the index [0..index -1] and remove the singleton for the element index
-  (define (remove-singleton-pvt entry acc)
-    (cond ((empty? entry) null)
-          ((= acc index) (cons (remove-singleton-line (car entry)) (remove-singleton-pvt (cdr entry) (+ acc 1))))
-          (else (cons (car entry) (remove-singleton-pvt (cdr entry) (+ acc 1))))))
-
-  ;; Real call TODO: check that index < length(entry)
-  (remove-singleton-pvt entry acc))
-;; =================================================================================
-;; END REMOVE SINGLETON FROM A LIST
-;; =================================================================================
-
-;; =================================================================================
-;; COLUMN SINGLETON REMOVAL 
-;; =================================================================================
-(define (remove-singleton-table-column table column number)
-  (if (empty? table)
-      null
-      (cons (remove-singleton-column (car table) column number) (remove-singleton-table-column (cdr table) column number))))
-;; Remove a sigleton from a column given a line
-(define (remove-singleton-column entry column number)
-  
-  (define (remove-singleton-column-pvt entry acc)
-    (if (empty? entry)
-        null
-        (if (= acc column)
-            (cons (remove-singleton-element (car entry) number) (remove-singleton-column-pvt (cdr entry) (+ acc 1)))
-            (cons (car entry) (remove-singleton-column-pvt (cdr entry) (+ acc 1))))))
-        
-  ;; Entry point
-  (remove-singleton-column-pvt entry 1))
-;; =================================================================================
-;; END COLUMN 
-;; =================================================================================
-
-
-;; =================================================================================
-;; LINES SINGLETON REMOVAL 
-;; =================================================================================
-(define (remove-singleton-table-line table lineidx number)
-
-  (define (remove-singleton-line line)
-    (if (empty? line)
-        null
-        (cons (remove-singleton-element (car line) number) (remove-singleton-line (cdr line)))))
-
-  (define (remove-singleton-table-line-pvt line acc)
-    (if (empty? line)
-        null
-        (if (= acc (- lineidx 1))
-            (cons (remove-singleton-line (car line)) (remove-singleton-table-line-pvt (cdr line) (+ acc 1)))
-            (cons (car line) (remove-singleton-table-line-pvt (cdr line) (+ acc 1)))
-            )))
-
-  (remove-singleton-table-line-pvt table 0))
-;; =================================================================================
-;; LINES SINGLETON END 
-;; =================================================================================
-
-
-;; =================================================================================
-;; BOXES SINGLETON REMOVAL 
-;; =================================================================================
-(define (remove-singleton-table-box table box number)
-  (define line-number (* (truncate (/ (- box 1) 3)) 3))
-  (define line-offset (* (modulo (- box 1) 3) 3))
-   
-  (define (remove-singleton-table-box-line-pvt line acc)
-    (if (empty? line)
-        null
-        (if (or (= acc line-number) (= acc (+ line-number 1)) (= acc (+ line-number 2)))
-            (cons (remove-singleton-table-box-line-offset (car line) 0)
-                  (remove-singleton-table-box-line-pvt (cdr line) (+ acc 1)))
-            (cons (car line )(remove-singleton-table-box-line-pvt (cdr line) (+ acc 1))))))
-           
-  ;; Process a sigle line
-  (define (remove-singleton-table-box-line-offset line acc)
-    (if (empty? line)
-        null 
-        ;; Process the three elements
-        (if (or (= acc line-offset) (= acc (+ line-offset 1)) (= acc (+ line-offset 2)))
-            (cons (remove-singleton-element (car line) number)
-                  (remove-singleton-table-box-line-offset (cdr line) (+ acc 1)))
-            (cons (car line) (remove-singleton-table-box-line-offset (cdr line) (+ acc 1))))))
-
-
-  ;; Entry Point
-  (remove-singleton-table-box-line-pvt table 0))
-;; =================================================================================
-;; BOXES SINGLETON REMOVAL END 
-;; =================================================================================
-
-
-;; =================================================================================
-;; IS PRESENT FAMILY FUNCTIONS
-;; =================================================================================
-(define (is-present-item item number)
-  (if (atom? item)
-      #f
-      (member number item)))
-
-;; Search for line
-(define (is-present-line table number lineidx columnidx)
-  (define (is-present-line-pvt line accC)
-    (cond ((empty? line) #f)
-          ((= accC columnidx) (is-present-line-pvt (cdr line) (+ accC 1)))
-          ((is-present-item (car line) number) #t)
-          (else (is-present-line-pvt (cdr line) (+ accC 1)))))
-  (is-present-line-pvt (car (drop (take table lineidx) (- lineidx 1))) 1))
-
-;; Search column
-(define (is-present-column table number lineidx columnidx)
-  (define (is-present-column-line-pvt line)
-    (is-present-item (car (drop line (- columnidx 1))) number))
-  (define (pvt line acc)
-    (cond
-      ;; Termination case
-      [(empty? line) #f]
-      ;; Skip cell
-      [(= acc lineidx) (pvt (cdr line) (+ acc 1))]
-      ;; Check cell
-      [(is-present-column-line-pvt (car line)) #t]
-      ;; Keep searching
-      [else (pvt (cdr line) (+ acc 1))]))
-  (pvt table 1))
-
-;; Search boxes, not the most efficient due to the copy
-;; TODO: this where start from next time
-(define (is-present-box table number lineidx columnidx)
-  (define boxidx (box-index lineidx columnidx))
-  (define boxes-table (compute-boxes table 0))
-  
-  ;; Compute where the skip cell is 
-  (define cellidx (+ (* (- (modulo lineidx 3) 1) 3) (modulo columnidx 3)))
-
-  (define (is-present-box-pvt line acc)
-    (cond
-      ;; Termination case
-      [(empty? line) #f]
-      ;; Skip cell
-      [(= acc cellidx) (is-present-box-pvt (cdr line) (+ acc 1))]
-      ;; Check cell
-      [(is-present-item (car line) number) #t]
-      ;; Continue searching with another cell
-      [else (is-present-box-pvt (cdr line) (+ acc 1))]))
-     
-  (define (pvt line acc)
-    (cond
-      [(empty? line) #f]
-      [(= acc boxidx) (is-present-box-pvt (car line) 1)]
-      [else (pvt (cdr line))]))
-
-  ;(pvt boxes-table 1))
-  (is-present-box-pvt (drop (take boxes-table boxidx) (- boxidx 1)) 1))
-
 
 
 ;; =================================================================================
 ;; UTILITY FUNCTION WORKING WITH COORDINATES
 ;; =================================================================================
-
 
 ;; For each table's cell  (func line column table[line*stride + column])
 (define (or-on-coordinate func table)
@@ -356,6 +76,149 @@
               (pvt-line (cdr line) (increment line-index))))))
   (pvt-line table))
 
+;; Transform a table
+(define (transformTable table)
+    ;; Transform a single number
+  (define (transformNumber x)
+    (if (> x 0)
+        x
+        `(1 2 3 4 5 6 7 8 9)))
+  ;; Transform an entire row
+  (define (transformRaw x)
+    (if (empty? x)
+        null
+        (cons (transformNumber (car x)) (transformRaw (cdr x)))))
+  ;; Use above functions to expand the whole table
+  (if (empty? table)
+      null
+      (cons (transformRaw (car table)) (transformTable (cdr table)))))
+
+;;TODO: There is the pair? operator!
+(define (atom? x)
+  (not (or (pair? x) (null? x))))
+
+(define (box-index line column)
+  (+
+   (* (truncate (/ line 3)) 3)
+   (truncate (/ column 3))
+   1))
+
+;; Common function for increment
+(define (increment number)
+  (+ number 1))
+
+;; Add the singleton to the global list
+(define (add-singleton line column number visited-singleton)
+    (cons (list line column number) visited-singleton))
+
+
+
+;; =================================================================================
+;; FIND SINGLETON
+;; Return a list (line-number column-number item)
+;; Arguments :
+;;             entry : table
+;;             visited-singleton: list of already visited singleton in the format
+;;                                ((line, column, number) ....)
+;;         
+;; =================================================================================
+
+(define (find-singleton table visited-singleton)
+  (or-on-coordinate (lambda (line column cell)
+                      ;; Not a singleton
+                      (if (list? cell) #f
+                          (let ([singleton-item (list line column cell)])
+                            ;; Singleton already present in the list
+                            (if (member singleton-item visited-singleton)
+                                #f
+                                ;; Return the found item
+                                (cons singleton-item visited-singleton)))))
+                    table))
+
+;; Check if a given singleton is already present in the list
+(define (is-singleton-present triple visited-singleton)
+  (if (member triple visited-singleton) #t #f))
+
+;; Handles a set cell, namely a single level list
+(define (remove-singleton-atom list number)
+  (if (empty? list)
+      null  
+      (if (= (car list) number)
+          (remove-singleton-atom (cdr list) number)
+          (cons (car list) (remove-singleton-atom (cdr list) number)))))
+
+;; Handles a cell, which can be a singleton or a list
+(define (remove-singleton-element entry number)
+  (if (atom? entry)
+      entry
+      (remove-singleton-atom entry number)))
+
+;; =================================================================================
+;; LINES SINGLETON REMOVAL 
+;; =================================================================================
+(define (remove-singleton-table-line table lineidx number)
+    (define (remove-singleton-line line)
+    (if (empty? line)
+        null
+        (cons (remove-singleton-element (car line) number) (remove-singleton-line (cdr line)))))
+  (define (remove-singleton-table-line-pvt line acc)
+    (if (empty? line)
+        null
+        (if (= acc lineidx)
+            (cons (remove-singleton-line (car line)) (remove-singleton-table-line-pvt (cdr line) (+ acc 1)))
+            (cons (car line) (remove-singleton-table-line-pvt (cdr line) (increment acc))))))
+  (remove-singleton-table-line-pvt table 1))
+;; =================================================================================
+;; LINES SINGLETON END 
+;; =================================================================================
+;; =================================================================================
+;; COLUMN SINGLETON REMOVAL 
+;; =================================================================================
+(define (remove-singleton-table-column table column number)
+  (if (empty? table)
+      null
+      (cons (remove-singleton-column (car table) column number) (remove-singleton-table-column (cdr table) column number))))
+(define (remove-singleton-column entry column number)
+  (define (remove-singleton-column-pvt entry acc)
+    (if (empty? entry)
+        null
+        (if (= acc column)
+            (cons (remove-singleton-element (car entry) number) (remove-singleton-column-pvt (cdr entry) (+ acc 1)))
+            (cons (car entry) (remove-singleton-column-pvt (cdr entry) (+ acc 1))))))
+  ;; Entry point
+  (remove-singleton-column-pvt entry 1))
+;; =================================================================================
+;; END COLUMN 
+;; =================================================================================
+;; =================================================================================
+;; BOXES SINGLETON REMOVAL 
+;; =================================================================================
+(define (remove-singleton-table-box table box number)
+  (define line-number (* (truncate (/ (- box 1) 3)) 3))
+  (define line-offset (* (modulo (- box 1) 3) 3))
+   
+  (define (remove-singleton-table-box-line-pvt line acc)
+    (if (empty? line)
+        null
+        (if (or (= acc line-number) (= acc (+ line-number 1)) (= acc (+ line-number 2)))
+            (cons (remove-singleton-table-box-line-offset (car line) 0)
+                  (remove-singleton-table-box-line-pvt (cdr line) (+ acc 1)))
+            (cons (car line )(remove-singleton-table-box-line-pvt (cdr line) (+ acc 1))))))
+  ;; Process a sigle line
+  (define (remove-singleton-table-box-line-offset line acc)
+    (if (empty? line)
+        null 
+        ;; Process the three elements
+        (if (or (= acc line-offset) (= acc (+ line-offset 1)) (= acc (+ line-offset 2)))
+            (cons (remove-singleton-element (car line) number)
+                  (remove-singleton-table-box-line-offset (cdr line) (+ acc 1)))
+            (cons (car line) (remove-singleton-table-box-line-offset (cdr line) (+ acc 1))))))
+  ;; Entry Point
+  (remove-singleton-table-box-line-pvt table 0))
+;; =================================================================================
+;; BOXES SINGLETON REMOVAL END 
+;; =================================================================================
+
 ;; =================================================================================
 ;; FIRST STEP
 ;; =================================================================================
@@ -379,6 +242,9 @@
 ;; TODO: unit test
 (define (first-step-single table singleton-list)
   (let ([current-step-singleton-list (find-singleton table singleton-list)])
+    (display "Removing")
+    (display current-step-singleton-list)
+    (display "\n")
     (reduce table
             (get-number current-step-singleton-list)
             (get-line current-step-singleton-list)
@@ -460,16 +326,13 @@
                            (else
                             #t)))
                        table))))
-        
-        
-    
 ;; =================================================================================
 ;; SECOND STEP END
 ;; =================================================================================
 
 ;; MAIN TEST
-;(define lines (transformTable sampletable))
-;(first-step-single lines null)
+(define lines (transformTable sampletable))
+(first-step-single lines null)
 ;(first-step lines (find-singleton lines null))
 
 
@@ -477,13 +340,9 @@
 ;; Exports
 (provide
  transformTable
- extract
- compute-columns
- compute-boxes
  atom?
  box-index
  find-singleton
- remove-singleton
  add-singleton
  is-singleton-present
  remove-singleton-element
@@ -495,9 +354,6 @@
  get-line
  get-column
  get-number
- is-present-line
- is-present-column
- is-present-box
  increment
  is-present-other-sets
  or-on-coordinate

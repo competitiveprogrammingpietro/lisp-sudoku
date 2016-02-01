@@ -26,19 +26,6 @@
                                          sampleTransformTableOuputTwo
                                          "Expanded incorrectly test transformTable"))))
 
-(define extract-tests
-  (test-suite "extract-tests"
-              (test-case "Extract the first element"
-                (define test-list `(1 2 3 4 5 6 7 8 9))
-                (check-equal? (extract test-list 1) 1 ))
-
-              (test-case "Extract the last element"
-                (define test-list `(1 2 3 4 5 6 7 8 9))
-                (check-equal? (extract test-list 9) 9 "Extract the last"))
-
-              (test-case "Extract the the middle one"
-                (define test-list `(1 2 3))
-                (check-equal? (extract test-list 2) 2 "Extract the middle one"))))
 
 (define increment-tests
   (test-suite "increment-tests"
@@ -49,99 +36,6 @@
               (test-case "Double increment"
                 (check-equal? (increment (increment 1)) 3))))
 
-(define compute-columns-tests
-  (test-suite "compute-columns-tests"
-              (test-case "Compute a simple table"
-                         (define list-input `(
-                                              (11 12 13)
-                                              (21 22 23)
-                                              (31 32 33)))
-                         (define list-output `(
-                                              (11 21 31)
-                                              (12 22 32)
-                                              (13 23 33)))
-                         (check-equal? (compute-columns list-input 3) list-output "Compute columns of a simple 3x3 table"))))
-
-(define compute-boxes-tests
-  (test-suite "compute-boxes-tests"
-              (test-case "Compute boxes from a 9x9 table"
-                         (define list-input `(
-                                              (11 12 13 14 15 16 17 18 19)
-                                              (21 22 23 24 25 26 27 28 29)
-                                              (31 32 33 34 35 36 37 38 39)
-                                              (41 42 43 44 45 46 47 48 49)
-                                              (51 52 53 54 55 56 57 58 59)
-                                              (61 62 63 64 65 66 67 68 69)
-                                              (71 72 73 74 75 76 77 78 79)
-                                              (81 82 83 84 85 86 87 88 89)
-                                              (91 92 93 94 95 96 97 98 99)
-                                              ))
-                          (define list-ouput `(
-                                              (11 12 13 21 22 23 31 32 33)
-                                              (14 15 16 24 25 26 34 35 36)
-                                              (17 18 19 27 28 29 37 38 39)
-                                              (41 42 43 51 52 53 61 62 63)
-                                              (44 45 46 54 55 56 64 65 66)
-                                              (47 48 49 57 58 59 67 68 69)
-                                              (71 72 73 81 82 83 91 92 93)
-                                              (74 75 76 84 85 86 94 95 96)
-                                              (77 78 79 87 88 89 97 98 99)
-                                              ))
-                           (check-equal? (compute-boxes list-input 0) list-ouput "Compute boxes of 9x9 table"))
-
-              (test-case "Compute boxes from a 9x9 table with sublists"
-                         (define list-input `(
-                                              (11 12 13 14 15 (1 2 3 4 5 6) 17 18 19)
-                                              (21 22 23 24 25 26 27 28 29)
-                                              (31 32 33 34 35 36 37 38 39)
-                                              (41 42 43 44 45 46 47 48 49)
-                                              (51 52 53 54 55 56 57 58 59)
-                                              (61 62 63 64 65 66 67 68 69)
-                                              (71 72 73 74 75 76 77 78 79)
-                                              (81 82 83 84 85 86 87 88 89)
-                                              (91 92 93 94 95 96 (9 7 8) 98 99)
-                                              ))
-                          (define list-ouput `(
-                                              (11 12 13 21 22 23 31 32 33)
-                                              (14 15 (1 2 3 4 5 6) 24 25 26 34 35 36)
-                                              (17 18 19 27 28 29 37 38 39)
-                                              (41 42 43 51 52 53 61 62 63)
-                                              (44 45 46 54 55 56 64 65 66)
-                                              (47 48 49 57 58 59 67 68 69)
-                                              (71 72 73 81 82 83 91 92 93)
-                                              (74 75 76 84 85 86 94 95 96)
-                                              (77 78 79 87 88 89 (9 7 8) 98 99)
-                                              ))
-                           (check-equal? (compute-boxes list-input 0) list-ouput "Compute boxes of 9x9 table with sublists"))
-
-              (test-case "Compute boxes from a 9x9 table with sublists, real case"
-                            (define list-input `(
-                                              (1 (1 3) 3 4 5 6 7 8 9) 
-                                              (1 2 3 4 5 6 7 8 9)
-                                              (1 (1 2) (1 3) 4 5 6 7 8 9)
-                                              (1 (1 2) 3 4 5 6 7 8 9)
-                                              (1 (1 2) 3 4 5 6 7 8 9)
-                                              (1 (1 2) 3 4 5 6 7 8 9)
-                                              (1 2 3 4 5 6 7 8 9)
-                                              (1 (1 2) 3 4 5 6 7 8 9)
-                                              (1 (1 2) 3 4 5 6 7 8 9))) 
-                            (define list-ouput `(
-                                              (1 (1 3) 3 1 2 3 1 (1 2) (1 3))
-                                              (4 5 6 4 5 6 4 5 6)
-                                              (7 8 9 7 8 9 7 8 9)
-                                              (1 (1 2) 3 1 (1 2) 3 1 (1 2) 3)
-                                              (4 5 6 4 5 6 4 5 6)
-                                              (7 8 9 7 8 9 7 8 9)
-                                              (1 2 3 1 (1 2) 3 1 (1 2) 3)
-                                              (4 5 6 4 5 6 4 5 6)
-                                              (7 8 9 7 8 9 7 8 9)
-                                              ))
-                          (check-equal? (compute-boxes list-input 0) list-ouput "Compute boxes of 9x9 table with sublists"))
-
-              
-              ))
-                       
-              
 (define atom?-tests
   (test-suite "atom?-tests"
               (test-case "Test againt a pair"
@@ -269,7 +163,7 @@
                                               ((1 2 3) (1 2 3) (1 2 3))
                                               ))
                            (define visited-singleton null)
-                           (check-equal? (find-singleton list-input visited-singleton) `((2 3 1))))
+                         (check-equal? (find-singleton list-input visited-singleton) `((2 3 1))))
               (test-case "No singleton present"
                          (define list-input `(
                                               ((1 2 3) (1 2 3) (1 2))
@@ -446,24 +340,23 @@
 ;; Generic tests
 ;(run-tests transform-table-tests)
 ;(run-tests increment-tests)
-;(run-test extract-tests)
 ;(run-tests compute-columns-tests)
 ;(run-tests compute-boxes-tests)
 ;(run-tests atom?-tests)
-(run-tests or-on-coordinate-tests)
-(run-tests or-on-line-tests)
-(run-tests or-on-column-tests)
+;(run-tests or-on-coordinate-tests)
+;(run-tests or-on-line-tests)
+;(run-tests or-on-column-tests)
 
 ;; Algorithm's first step tests
-;(run-tests find-singleton-tests)
-;(run-tests remove-singleton-list-tests)
-;(run-tests remove-singleton-column-tests)
-;(run-tests remove-singleton-table-column-tests)
-;(run-tests remove-singleton-table-line-tests)
-;(run-tests remove-singleton-table-box-tests)
-;(run-tests add-singleton-tests)
+(run-tests find-singleton-tests)
+(run-tests remove-singleton-list-tests)
+(run-tests remove-singleton-column-tests)
+(run-tests remove-singleton-table-column-tests)
+(run-tests remove-singleton-table-line-tests)
+(run-tests remove-singleton-table-box-tests)
+(run-tests add-singleton-tests)
 (run-tests is-singleton-present-tests)
-;(run-tests  get-tests)
+(run-tests  get-tests)
 
 
 
