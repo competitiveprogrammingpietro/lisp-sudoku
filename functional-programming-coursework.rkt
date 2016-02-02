@@ -270,10 +270,12 @@
 ;; SECOND STEP
 ;; =================================================================================
 
+
+
 ;; Checks if there is a set other than the one specified by the coordinates (line-idx, column-idx)
 ;; containing a specific number, this function it is used to check if it is possible to reduce
 ;; a set to a singleton.
-(define (is-present-other-sets line-idx column-idx table number)
+(define (is-present-other-sets line-idx column-idx number table)
   (let* ([start-line (+ (truncate (/ (- line-idx 1) 3)) 1)]
          [start-column (+ (* 3 (truncate (/ (- column-idx 1) 3))) 1)]
          [end-line (+ start-line 2)]

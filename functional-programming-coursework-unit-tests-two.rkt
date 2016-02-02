@@ -61,7 +61,7 @@
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      )
                   )
-                          (check-equal? (is-present-other-sets 6 3 list-input 3) #t))
+                (check-equal? (is-present-other-sets 6 3 3 list-input) #t))
               
               (test-case "Check column: another set with the number 3 other than the (1,3) cell is at the same column at (3, 3)"
                 (define list-input `(
@@ -77,7 +77,7 @@
                                      
                                      )
                   )
-                (check-equal? (is-present-other-sets 1 3 list-input 3) #t))
+                (check-equal? (is-present-other-sets 1 3 3 list-input) #t))
 
               (test-case "Box check: another set with the number 3 other than the (1,3) cell is present in the same box at (3, 2)"
                 (define list-input `(
@@ -93,7 +93,7 @@
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      )
                             )
-                (check-equal? (is-present-other-sets 1 3 list-input 3) #t))
+                (check-equal? (is-present-other-sets 1 3 3 list-input) #t))
               
               (test-case "Box check: another set with the number 3 other than the (1,3) cell is present but in a different box at (8, 2) (9 6)"
 
@@ -109,7 +109,7 @@
                                      ((1 2) (3 4) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
               )
                             )
-                (check-equal? (is-present-other-sets 1 3 list-input 3) #f))
+                (check-equal? (is-present-other-sets 1 3 3 list-input) #f))
               
               (test-case "Box check: another set with the number 3 other than the (1,3) cell is present in the same box at (3, 1) others are in different boxes (8, 2) (9 6)"
 
@@ -125,7 +125,7 @@
                                      ((1 2) (3 4) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
                                      )
                             )
-                (check-equal? (is-present-other-sets 1 3 list-input 3) #t))
+                (check-equal? (is-present-other-sets 1 3 3 list-input) #t))
               
               (test-case "The set at (1, 1) is the only one to contains the number 3"
                 (define list-input `(
@@ -142,7 +142,7 @@
                                      )
                             )
 
-                (check-equal? (is-present-other-sets 1 1 list-input 3) #f))
+                (check-equal? (is-present-other-sets 1 1 3 list-input) #f))
               
               
               ))
@@ -152,5 +152,6 @@
 ;; SECOND TESTS END
 ;; =================================================================================
 
-;(run-tests second-step-tests)
+
 (run-tests reduce-tests)
+(run-tests is-present-other-set-tests)
