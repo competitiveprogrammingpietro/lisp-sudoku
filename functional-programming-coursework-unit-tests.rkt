@@ -338,14 +338,12 @@
                 (check-equal? (or-on-column custom-func list-input 7) `(4 . 7)))))
 
 ;; Generic tests
-;(run-tests transform-table-tests)
-;(run-tests increment-tests)
-;(run-tests compute-columns-tests)
-;(run-tests compute-boxes-tests)
-;(run-tests atom?-tests)
-;(run-tests or-on-coordinate-tests)
-;(run-tests or-on-line-tests)
-;(run-tests or-on-column-tests)
+(run-tests transform-table-tests)
+(run-tests increment-tests)
+(run-tests atom?-tests)
+(run-tests or-on-coordinate-tests)
+(run-tests or-on-line-tests)
+(run-tests or-on-column-tests)
 
 ;; Algorithm's first step tests
 (run-tests find-singleton-tests)

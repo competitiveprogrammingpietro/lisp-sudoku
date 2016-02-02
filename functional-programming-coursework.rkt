@@ -270,7 +270,23 @@
 ;; SECOND STEP
 ;; =================================================================================
 
+; Notes on find-singleton
 
+; Ideally an hast-table mapping (coordinates) -> {already visited singleton}
+; wouldn't be a bad idea
+; Struct {recent} {Hashtable}
+
+; Reduce singleton
+; Check condition: each cell is a singleton
+
+(define (find-singleton-set table visited-singleton-set)
+  (or-on-coordinate (lambda (line column cell)
+                      (if (atom? cell)
+                          #f
+                          (cond
+                            ([cell ]))))))
+
+                      
 
 ;; Checks if there is a set other than the one specified by the coordinates (line-idx, column-idx)
 ;; containing a specific number, this function it is used to check if it is possible to reduce
