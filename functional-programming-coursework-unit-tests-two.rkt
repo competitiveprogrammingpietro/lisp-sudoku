@@ -147,11 +147,106 @@
               
               ))
 
+(define find-singleton-test
+  (test-suite "find-singleton-test"
+              (test-case "Return the first singleton, which is the number 1 at 1,2"
+                (define list-input `(
+                                     (1 (1 2 3 4 5) 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     ))
+                (check-equal? (find-singleton-set list-input (make-hash)) `(1 2 1)))
 
+              (test-case "Return the first valid singleton, which is the number 2 at 1,2"
+                (define list-input `(
+                                     (1 (1 2 3 4 5) 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     ))
+                (define ht (make-hash))
+                (hash-set! ht "12" `(1))
+                (check-equal? (find-singleton-set list-input ht) `(1 2 2)))
+
+              (test-case "Return the first valid singleton, which is the number 8 at 9,2. The hashtable contains several key, value pairs"
+                (define list-input `(
+                                     (1 (1 2 3 4 5) 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 (1 2 3 4) 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 (8 9) 3 4 5 6 7 8 9)
+                                     ))
+                (define ht (make-hash))
+                (hash-set! ht "12" `(1 2 3 4 5))
+                (hash-set! ht "76" `(1 2 3 4))
+                (check-equal? (find-singleton-set list-input ht) `(9 2 8)))
+
+              (test-case "Return false, since there are not singleton"
+                (define list-input `(
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     ))
+                (define ht (make-hash))
+                (hash-set! ht "12" `(1))
+                (check-equal? (find-singleton-set list-input ht) #f))
+
+              ))
+(define reduce-set-tests
+  (test-suite "reduce-set-tests"
+              (test-case "Reduce set at 1,2 to be 2"
+                (define list-input `(
+                                     (1 (1 2 3 4 5) 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     ))
+                (define list-output `(
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
+                                     ))
+                
+                (check-equal? (reduce-set 1 2 2 list-input) list-output)
+                )))
 ;; =================================================================================
 ;; SECOND TESTS END
 ;; =================================================================================
 
 
-(run-tests reduce-tests)
-(run-tests is-present-other-set-tests)
+;(run-tests reduce-tests)
+;(run-tests find-singleton-test)
+;(run-tests is-present-other-set-tests)
+(run-tests reduce-set-tests)

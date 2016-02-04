@@ -278,15 +278,53 @@
 
 ; Reduce singleton
 ; Check condition: each cell is a singleton
+; Hashtable ket linecolumn
 
-(define (find-singleton-set table visited-singleton-set)
+;; Return the first singleton among the first table's cell composed by a list (set)
+;; which is not contained in the hashtable addressed by linecolumn values.
+(define (find-singleton-set table visited-singleton-hashtable)
+
+
+  
   (or-on-coordinate (lambda (line column cell)
+                        ;; TODO: better way to do it ?
+                      (define (add-it-and-return-it hashtable key value item)
+                        ;; First element of the key's list
+                        (if (null? value)
+                            (hash-set! hashtable key (list item))
+                            (hash-set! hashtable key (append value item)))
+                        (list line column item))
+                      
+                      ;; The cell contains a singleton, skip it
                       (if (atom? cell)
                           #f
-                          (cond
-                            ([cell ]))))))
+                          (ormap (lambda (x)
+                                   ;; Hashtable's key is the concatenation of line and column
+                                   (let* ((key (string-append (number->string line) (number->string column)))
+                                          (value (hash-ref visited-singleton-hashtable key #f)))
+                                     ;; Key it is not present in the hashtable therefore it needs
+                                     ;; to be returned and added to the hashtable
+                                     (if (not value)
+                                         (add-it-and-return-it visited-singleton-hashtable key null x)
+                                         ;; If the item is present in the list of already visited
+                                         ;; item for such key return false, return the item
+                                         ;; itself otherwise
+                                         (if (member x value)
+                                             #f
+                                             (add-it-and-return-it visited-singleton-hashtable key value x)))))
+                                 cell)))
+                    table))
 
+(define (reduce-set line-set column-set singleton table)
+  (or-on-coordinate (lambda (line column cell)
+                      (define (reduce-cell-return-table)
+                        (set! cell singleton)
+                        table)
                       
+                      (if (and (= line line-set) (= column column-set))
+                          (reduce-cell-return-table)
+                          #f))
+                    table))
 
 ;; Checks if there is a set other than the one specified by the coordinates (line-idx, column-idx)
 ;; containing a specific number, this function it is used to check if it is possible to reduce
@@ -349,8 +387,8 @@
 ;; =================================================================================
 
 ;; MAIN TEST
-(define lines (transformTable sampletable))
-(first-step-single lines null)
+;(define lines (transformTable sampletable))
+;(first-step-single lines null)
 ;(first-step lines (find-singleton lines null))
 
 
@@ -377,6 +415,8 @@
  or-on-coordinate
  or-on-line
  or-on-column
+ find-singleton-set
+ reduce-set
  )
 
 
