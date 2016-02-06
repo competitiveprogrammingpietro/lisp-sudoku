@@ -11,12 +11,35 @@
                  [0 0 0 0 7 8 1 0 3]
                  [0 0 0 6 0 0 5 9 0]))
 
-
-
 ;; =================================================================================
 ;; UTILITY FUNCTION WORKING WITH COORDINATES
 ;; =================================================================================
 
+;; Return the table given as input where each cell at is altered by the given
+;; function
+
+
+;; Return the table resulting from the application of the function
+;; (func line column cell) to every cell
+
+(define (func-on-coordinate func table line column)
+  (define (pvt-line table (line-idx 1))
+    (define (pvt-column line (column-idx 1))
+      (if [null? line]
+          null
+          (cons
+           (func line-idx column-idx (car line))
+           (pvt-column (cdr line) (increment column-idx)))))
+         
+    ;; Entry point pvt-line
+    (if (null? table)
+        null
+        (cons
+         (pvt-column (car table))
+         (pvt-line (cdr table) (increment line-idx)))))
+  ;(trace func)
+  (pvt-line table))
+  
 ;; For each table's cell  (func line column table[line*stride + column])
 (define (or-on-coordinate func table)
   
@@ -34,7 +57,6 @@
                 (pvt-column (cdr line) (increment column-idx))))))
 
     ;(trace pvt-column)
-    
     (if (null? table) #f
         (let ([result (pvt-column (car table))])
           (if (not result)
@@ -280,21 +302,19 @@
 ; Check condition: each cell is a singleton
 ; Hashtable ket linecolumn
 
-;; Return the first singleton among the first table's cell composed by a list (set)
+;;Return the first singleton among the first table's cell composed by a list (set)
 ;; which is not contained in the hashtable addressed by linecolumn values.
 (define (find-singleton-set table visited-singleton-hashtable)
-
-
-  
   (or-on-coordinate (lambda (line column cell)
+                      
                         ;; TODO: better way to do it ?
                       (define (add-it-and-return-it hashtable key value item)
                         ;; First element of the key's list
                         (if (null? value)
                             (hash-set! hashtable key (list item))
-                            (hash-set! hashtable key (append value item)))
+                            (hash-set! hashtable key (append value (list item))))
                         (list line column item))
-                      
+                      ;(trace add-it-and-return-it)
                       ;; The cell contains a singleton, skip it
                       (if (atom? cell)
                           #f
@@ -316,16 +336,14 @@
                     table))
 
 (define (reduce-set line-set column-set singleton table)
-  (or-on-coordinate (lambda (line column cell)
-                      (define (reduce-cell-return-table)
-                        (set! cell singleton)
-                        table)
-                      
-                      (if (and (= line line-set) (= column column-set))
-                          (reduce-cell-return-table)
-                          #f))
-                    table))
-
+  (func-on-coordinate (lambda (line column cell)
+                        (if (and (= line line-set) (= column column-set))
+                            singleton
+                            cell))
+                      table
+                      line-set
+                      column-set))
+    
 ;; Checks if there is a set other than the one specified by the coordinates (line-idx, column-idx)
 ;; containing a specific number, this function it is used to check if it is possible to reduce
 ;; a set to a singleton.
@@ -382,6 +400,28 @@
                            (else
                             #t)))
                        table))))
+
+(define (second-step table visited-singleton-set)
+  ;(trace find-singleton-set)
+  ;(trace is-present-other-sets)
+  ;(trace second-step)
+         
+  (let ([current-singleton (find-singleton-set table visited-singleton-set)])
+    (cond
+      ([not current-singleton] table)
+      ;; TODO: avoid this verboseness
+      ([is-present-other-sets (list-ref current-singleton 0)
+                                   (list-ref current-singleton 1)
+                                   (list-ref current-singleton 2)
+                                   table]
+       (second-step table visited-singleton-set))
+      (else
+       (reduce-set
+         (list-ref current-singleton 0)
+         (list-ref current-singleton 1)
+         (list-ref current-singleton 2)
+         table)))))
+                                  
 ;; =================================================================================
 ;; SECOND STEP END
 ;; =================================================================================
@@ -412,11 +452,13 @@
  get-number
  increment
  is-present-other-sets
+ func-on-coordinate
  or-on-coordinate
  or-on-line
  or-on-column
  find-singleton-set
  reduce-set
+ second-step
  )
 
 
