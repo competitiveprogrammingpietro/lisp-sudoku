@@ -261,17 +261,18 @@
      column singleton)
     line singleton))
 
-;; TODO: unit test
+; Return the table and the list and the singleton's list
 (define (first-step-single table singleton-list)
   (let ([current-step-singleton-list (find-singleton table singleton-list)])
-    (display "Removing")
-    (display current-step-singleton-list)
-    (display "\n")
-    (reduce table
-            (get-number current-step-singleton-list)
-            (get-line current-step-singleton-list)
-            (get-column current-step-singleton-list))))  
-         
+    ;(display "removing:\n")
+    ;(display (get-number current-step-singleton-list))
+    (values
+     (reduce table
+             (get-number current-step-singleton-list)
+             (get-line current-step-singleton-list)
+             (get-column current-step-singleton-list))
+     current-step-singleton-list)))
+
 (define (first-step table singleton-list)
   (if (not singleton-list)
       table
@@ -401,6 +402,7 @@
                             #t)))
                        table))))
 
+; Return the table and the list and the set's singleton list
 (define (second-step table visited-singleton-set)
   ;(trace find-singleton-set)
   ;(trace is-present-other-sets)
@@ -408,29 +410,62 @@
          
   (let ([current-singleton (find-singleton-set table visited-singleton-set)])
     (cond
-      ([not current-singleton] table)
+      ([not current-singleton] (values table visited-singleton-set))
       ;; TODO: avoid this verboseness
+      ; This singleton is not unique, search for a new one
       ([is-present-other-sets (list-ref current-singleton 0)
-                                   (list-ref current-singleton 1)
-                                   (list-ref current-singleton 2)
-                                   table]
+                              (list-ref current-singleton 1)
+                              (list-ref current-singleton 2)
+                              table]
        (second-step table visited-singleton-set))
       (else
-       (reduce-set
-         (list-ref current-singleton 0)
-         (list-ref current-singleton 1)
-         (list-ref current-singleton 2)
-         table)))))
-                                  
+       (values 
+        (reduce-set (list-ref current-singleton 0) (list-ref current-singleton 1) (list-ref current-singleton 2) table)
+        visited-singleton-set)))))
+
+; Return true only if every cell is a singleton
+(define (solver-termination-condition table)
+  (let (
+        (result (or-on-coordinate (lambda (line column cell)
+                                    (if (not (atom? cell)) #t
+                                        #f))
+                                  table)))
+    (not result)))
 ;; =================================================================================
 ;; SECOND STEP END
 ;; =================================================================================
 
+;; =================================================================================
+;; RESOLVER
+;; =================================================================================
+(define (solve matrix)
+  (define (pvt-solve transformed-matrix first-singleton second-singleton)
+    (if (solver-termination-condition transformed-matrix)
+        transformed-matrix
+        (let*-values (
+                      [(first-step-table first-step-list) (first-step-single transformed-matrix first-singleton)]
+                      [(second-step-table second-step-list) (second-step first-step-table second-singleton)]
+                      )
+;          (display first-step-table)
+;          (display first-step-list)
+;          (display second-step-table)
+;          (display second-step-list)
+          (pvt-solve second-step-table first-step-list second-step-list)
+          
+          )))
+  (trace pvt-solve)
+  (pvt-solve (transformTable sampletable) null (make-hash)))
+        
+    
+    
+
+
 ;; MAIN TEST
-;(define lines (transformTable sampletable))
+(define lines (transformTable sampletable))
 ;(first-step-single lines null)
 ;(first-step lines (find-singleton lines null))
-
+;(second-step lines (make-hash))
+(solve sampletable)
 
 
 ;; Exports
@@ -459,6 +494,7 @@
  find-singleton-set
  reduce-set
  second-step
+ solver-termination-condition
  )
 
 
