@@ -1,4 +1,5 @@
 #lang racket/base
+(require racket/trace)
 (require rackunit/text-ui)
 (require rackunit
          "functional-programming-coursework.rkt")
@@ -49,9 +50,13 @@
 (define box-index-tests
   (test-suite "box-index"
               (test-case "Test one"
-                         (check-equal? (box-index 0 8) 3)
-                         (check-equal? (box-index 8 8) 8)
-                         (check-equal? (box-index 4 4) 4))))
+                (check-equal? (box-index 1 1) 1))
+              (test-case "Test two"
+                (check-equal? (box-index 1 9) 3))
+              (test-case "Test three"  
+                (check-equal? (box-index 5 5) 5))
+              (test-case "Test four"
+                         (check-equal? (box-index 9 9) 9))))
 
 
 (define add-singleton-tests
@@ -59,13 +64,6 @@
               (test-case "Add two singletons in the global list"
                          (define visited-singleton null)
                          (check-equal? (add-singleton 0 0 1 visited-singleton) `((0 0 1)) "Singleton NOT added to the global list"))))
-
-(define is-singleton-present-tests
-  (test-suite "is-singleton-present-tests"
-              (test-case "Various tests to check the function works correctly"
-                         (define visited-singleton `((0 0 1)))
-                         (check-equal? (is-singleton-present `(0 0 1) visited-singleton) #t "Singleton is already in the list")
-                         (check-equal? (is-singleton-present `(1 0 1) visited-singleton) #f "This singleton itsn't already in the list"))))
 
 (define remove-singleton-list-tests
   (test-suite "remove-singleton-list-tests"
@@ -110,12 +108,8 @@
                                                    (1 (1 2 4 5) 2 3 4 5 6 7 8 9)))
                          (check-equal? (remove-singleton-table-column test-list-input 2 3) test-list-output))
               
-              (test-case "Singleton not remove because not present in the column"
-                         (define test-list-input `(
-                                                   ;; Line 1..n
-                                                   (1 2 3 4 5 6 7 8 9)
-                                                   (1 (1 2 4 5) 2 3 4 5 6 7 8 9)))
-                         (check-equal? (remove-singleton-table-column test-list-input 2 3) test-list-input))))
+         
+              ))
 
 (define remove-singleton-table-line-tests
   (test-suite "remove-singleton-table-line-tests"
@@ -195,6 +189,7 @@
                                                           (find-singleton list-input
                                                                           (find-singleton list-input visited-singleton))))
                           `((3 1 3) (2 3 2) (1 2 1) (1 1 5))))
+              
               ))
              
 (define remove-singleton-table-box-tests
@@ -263,10 +258,7 @@
                                                (1 2 3 4 5 6 7 8 9)
                                                (1 2 3 4 5 6 7 8 9)
                                                ))
-                            (check-equal? (remove-singleton-table-box list-input 2 3) list-output))
-
-
-               
+                          (check-equal? (remove-singleton-table-box list-input 2 3) list-output))
                ))
                                        
 (define get-tests
@@ -337,24 +329,55 @@
                       #f))
                 (check-equal? (or-on-column custom-func list-input 7) `(4 . 7)))))
 
+(define first-step-tests
+  (test-suite "first-step-tests"
+              (test-case "A set reducted to a singleton is considered in the following reduction"
+                (define list-input `(
+                                     ((1 2) (1 2 3) (1 2) (5 6)   5   (1 2) (1 2) (1 2) (1 2))
+                                     ((1 2) (1 2 3) (1 2) (1 2) (1 2) (6 7) (1 2) (1 2) (1 2))
+                                     ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                     ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                     ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                     ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                     ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                     ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                     ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                     ))
+
+                (define list-output `(
+                                      ((1 2) (1 2 3) (1 2)   6   5   (1 2) (1 2) (1 2) (1 2))
+                                      ((1 2) (1 2 3) (1 2) (1 2) (1 2)   7 (1 2) (1 2) (1 2))
+                                      ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                      ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                      ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                      ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                      ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                      ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                      ((1 2) (1 2 3) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
+                                      ))
+                (check-equal? (first-step list-input (find-singleton list-input null)) list-output))
+              ))
+                
+
 ;; Generic tests
-(run-tests transform-table-tests)
-(run-tests increment-tests)
-(run-tests atom?-tests)
-(run-tests or-on-coordinate-tests)
-(run-tests or-on-line-tests)
-(run-tests or-on-column-tests)
+;(run-tests box-index-tests)
+;(run-tests transform-table-tests)
+;(run-tests increment-tests)
+;(run-tests atom?-tests)
+;(run-tests or-on-coordinate-tests)
+;(run-tests or-on-line-tests)
+;(run-tests or-on-column-tests)
 
 ;; Algorithm's first step tests
-(run-tests find-singleton-tests)
-(run-tests remove-singleton-list-tests)
-(run-tests remove-singleton-column-tests)
-(run-tests remove-singleton-table-column-tests)
-(run-tests remove-singleton-table-line-tests)
-(run-tests remove-singleton-table-box-tests)
-(run-tests add-singleton-tests)
-(run-tests is-singleton-present-tests)
-(run-tests  get-tests)
-
+;(run-tests find-singleton-tests)
+;(run-tests remove-singleton-list-tests)
+;(run-tests remove-singleton-column-tests)
+;(run-tests remove-singleton-table-column-tests)
+;(run-tests remove-singleton-table-line-tests)
+;(run-tests remove-singleton-table-box-tests)
+;(run-tests add-singleton-tests)
+;(run-tests is-singleton-present-tests)
+;(run-tests  get-tests)
+(run-tests first-step-tests)
 
 

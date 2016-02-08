@@ -144,10 +144,21 @@
 
                 (check-equal? (is-present-other-sets 1 1 3 list-input) #f))
               
-              
-              ))
+                (test-case "Real scenario test"
+                  (define list-input '(((3 4 7 8 9) 2 5 (3 7 8 9) (3 6 8 9) 1 (4 7 8 9) (3 4 7 8) (4 6 7 8))
+                                       (1 (3 6 7) 4 2 5 (3 6 7 9) (7 8 9) (3 7 8) (6 7 8))
+                                       ((3 5 7 8 9) (3 7) 6 (3 7 8 9) (3 8 9) 4 2 1 (5 7 8))
+                                       ((4 7 8 9) 5 (8 9) (1 4 7 8 9) (1 4 8 9) (7 9) 3 2 (6 7 8))
+                                       (6 (1 3 4 7) (3 8) (1 3 4 7 8) 2 (3 5 7) (7 8) (5 7 8) 9)
+                                       ((2 3 4 9) 8 7 (1 3 4 9) (1 3 4 9) (3 5 9) (9) 6 (5))
+                                       ((2 3 4 7) 9 1 5 (3 4 8) (2 3) 6 (3 4 7) (2 4 7))
+                                       ((2 4 5) (4 6) (2) (4 9) 7 8 1 (4 5) 3)
+                                       ((2 3 4 7) (1 3 4 7) (2 3) 6 (3 4 8) (2 3) 5 9 (2 4 7)))
+                                     )
+                  (check-equal? (is-present-other-sets 1 1 3 list-input) #f))
+                ))
 
-(define find-singleton-test
+(define find-singleton-set-test
   (test-suite "find-singleton-test"
               (test-case "Return the first singleton, which is the number 1 at 1,2"
                 (define list-input `(
@@ -212,7 +223,8 @@
                 (hash-set! ht "12" `(1))
                 (check-equal? (find-singleton-set list-input ht) #f))
 
-              ))
+              
+               ))
 
 (define reduce-set-tests
   (test-suite "reduce-set-tests"
@@ -383,9 +395,8 @@
                                       ))
                 (check-equal? (second-step list-input (make-hash)) list-output))
 
-              (test-case "The set at 6,3 can be reduced to be 8"
+              (test-case "The set at 6,4 can be reduced to be 8"
                 (define list-input `(
-                                     (1 2 3 4 5 6 7 8 9)
                                      (1 2 3 4 5 6 7 8 9)
                                      (1 2 3 4 5 6 7 8 9)
                                      (1 2 3 4 5 6 7 8 9)
@@ -394,9 +405,9 @@
                                      (1 2 3 (1 2 3 4 8) 5 6 7 8 9)
                                      (1 2 3 (1 2 3 4) 5 6 7 8 9)
                                      (1 2 3 4 5 (1 2 3 4) 7 8 9)
+                                     (1 2 3 4 5 6 7 8 9)
                                      ))
                 (define list-output `(
-                                      (1 2 3 4 5 6 7 8 9)
                                       (1 2 3 4 5 6 7 8 9)
                                       (1 2 3 4 5 6 7 8 9)
                                       (1 2 3 4 5 6 7 8 9)
@@ -405,9 +416,45 @@
                                       (1 2 3 8 5 6 7 8 9)
                                       (1 2 3 (1 2 3 4) 5 6 7 8 9)
                                       (1 2 3 4 5 (1 2 3 4) 7 8 9)
+                                      (1 2 3 4 5 6 7 8 9)
                                       ))
                 (check-equal? (second-step list-input (make-hash)) list-output))
-                ))
+              
+              (test-case "The set at 6,4 can be reduced to be 8"
+                (define list-input `(
+                                     '(
+                                       ((3 7 8 9) 2 5           (3 7 8) (3 6 8 9) 1           (7 8 9) (3 7 8) 4)
+                                       (1 (3 7) 4               2 5 (3 6 7 9)                 (7 8 9) (3 7 8) (6 7 8))
+                                       ((3 7 8 9) (3 7) 6       (3 7 8) (3 8 9) 4             2 1 (5 7 8))
+                                       
+                                       (4 5 9                   (1 7 8) (1 6 8) (6 7)         3 2 (1 7 8))
+                                       (6 1 3                   4 2 (5 7) (7 8)               (5 7 8) 9)
+                                       (2 8 7                   (1 3) (1 3 9) (3 5 9)         4 6 (1 5))
+                                       
+                                       ((3 7) 9 1               5 (3 4) (2 3)                 6 (7 8) (2 7 8))
+                                       (5 6 2                   9 7 8                         1 4 3)
+                                       ((3 7) (3 4 7) 8         6 (1 3 4) (2 3)               5 9 (2 7))
+                                     )))
+                (define list-output `(
+                                  '(
+                                    ((3 7 8 9) 2 5           (3 7 8) (3 6 8 9) 1           (7 8 9) (3 7 8) 4)
+                                    (1 (3 7) 4               2 5 (3 6 7 9)                 (7 8 9) (3 7 8) (6 7 8))
+                                    ((3 7 8 9) (3 7) 6       (3 7 8) (3 8 9) 4             2 1 (5 7 8))
+  
+                                    (4 5 9                   (1 7 8) (1 6 8) (6 7)         3 2 (1 7 8))
+                                    (6 1 3                   4 2 (5 7) (7 8)               (5 7 8) 9)
+                                    (2 8 7                   (1 3) (1 3 9) (3 5 9)         4 6 (1 5))
+  
+                                    ((3 7) 9 1               5 (3 4) (2 3)                 6 (7 8) (2 7 8))
+                                    (5 6 2                   9 7 8                         1 4 3)
+                                    ((3 7) (3 4 7) 8         6 (1 3 4) (2 3)               5 9 (2 7))
+                                    )))
+                                  
+                (check-equal? (second-step list-input (make-hash)) list-output))
+
+
+              
+              ))
 
 
 (define solver-termination-condition-tests
@@ -422,7 +469,7 @@
                                      (1 2 3 4 5 6 7 8 9)
                                      (1 2 3 4 5 6 7 8 9)
                                      (1 2 3 4 5 6 7 8 9)
-                                     (1 2 3 4 5 6 7 8 9)
+                                     (1 2 3 4 5 6 7 8 (1 2 3 4))
                                      ))
                 (check-equal? (solver-termination-condition list-input) #f))
               (test-case "Table has been solved"
@@ -438,17 +485,17 @@
                                      (1 2 3 4 5 6 7 8 9)
                                      ))
                 (check-equal? (solver-termination-condition list-input) #t))
-              
-                ))
+              ))
+                
 ;; =================================================================================
 ;; SECOND TESTS END
 ;; =================================================================================
 
 
 ;(run-tests reduce-tests)
-;(run-tests find-singleton-test)
+(run-tests find-singleton-set-test)
 ;(run-tests is-present-other-set-tests)
 ;(run-tests reduce-set-tests)
-(run-tests second-step-tests)
+;(run-tests second-step-tests)
 ;(run-tests func-on-coordinate-tests)
 ;(run-tests solver-termination-condition-tests)

@@ -11,6 +11,17 @@
                  [0 0 0 0 7 8 1 0 3]
                  [0 0 0 6 0 0 5 9 0]))
 
+(define sampletable2 `(
+                 [0 0 0 2 6 0 7 0 1]
+                 [6 8 0 0 7 0 0 9 0]
+                 [1 9 0 0 0 4 5 0 0]
+                 [8 2 0 1 0 0 0 4 0]
+                 [0 0 4 6 0 2 9 0 0]
+                 [0 5 0 0 0 3 0 2 8]
+                 [0 0 9 3 0 0 0 7 4]
+                 [0 4 0 0 5 0 0 3 6]
+                 [7 0 3 0 1 8 0 0 0]))
+
 ;; =================================================================================
 ;; UTILITY FUNCTION WORKING WITH COORDINATES
 ;; =================================================================================
@@ -120,11 +131,13 @@
   (not (or (pair? x) (null? x))))
 
 (define (box-index line column)
-  (+
-   (* (truncate (/ line 3)) 3)
-   (truncate (/ column 3))
-   1))
-
+  (let ((line-1 (- line 1))
+        (column-1 (- column 1)))
+    (+ 
+     (* (truncate (/ line-1 3)) 3)
+     (truncate (/ column-1 3))
+     1)))
+    
 ;; Common function for increment
 (define (increment number)
   (+ number 1))
@@ -137,14 +150,7 @@
 
 ;; =================================================================================
 ;; FIND SINGLETON
-;; Return a list (line-number column-number item)
-;; Arguments :
-;;             entry : table
-;;             visited-singleton: list of already visited singleton in the format
-;;                                ((line, column, number) ....)
-;;         
 ;; =================================================================================
-
 (define (find-singleton table visited-singleton)
   (or-on-coordinate (lambda (line column cell)
                       ;; Not a singleton
@@ -157,20 +163,18 @@
                                 (cons singleton-item visited-singleton)))))
                     table))
 
-;; Check if a given singleton is already present in the list
-(define (is-singleton-present triple visited-singleton)
-  (if (member triple visited-singleton) #t #f))
-
 ;; Handles a set cell, namely a single level list
-(define (remove-singleton-atom list number)
-  (if (empty? list)
-      null  
-      (if (= (car list) number)
-          (remove-singleton-atom (cdr list) number)
-          (cons (car list) (remove-singleton-atom (cdr list) number)))))
-
+;; Sets containing a single number are reduced to a singleton
+(define (remove-singleton-atom cell number)
+  (let ((reduced-list (filter (lambda (x) (not (= number x))) cell)))
+    (if (= (length reduced-list) 1)
+        (car reduced-list)
+        reduced-list)))
+    
+                               
 ;; Handles a cell, which can be a singleton or a list
 (define (remove-singleton-element entry number)
+  ;(trace remove-singleton-atom)
   (if (atom? entry)
       entry
       (remove-singleton-atom entry number)))
@@ -216,6 +220,7 @@
 ;; BOXES SINGLETON REMOVAL 
 ;; =================================================================================
 (define (remove-singleton-table-box table box number)
+  
   (define line-number (* (truncate (/ (- box 1) 3)) 3))
   (define line-offset (* (modulo (- box 1) 3) 3))
    
@@ -236,6 +241,9 @@
                   (remove-singleton-table-box-line-offset (cdr line) (+ acc 1)))
             (cons (car line) (remove-singleton-table-box-line-offset (cdr line) (+ acc 1))))))
   ;; Entry Point
+  ;(trace remove-singleton-table-box-line-pvt)
+  ;(trace remove-singleton-table-box-line-offset)
+
   (remove-singleton-table-box-line-pvt table 0))
 ;; =================================================================================
 ;; BOXES SINGLETON REMOVAL END 
@@ -264,27 +272,26 @@
 ; Return the table and the list and the singleton's list
 (define (first-step-single table singleton-list)
   (let ([current-step-singleton-list (find-singleton table singleton-list)])
-    ;(display "removing:\n")
-    ;(display (get-number current-step-singleton-list))
-    (values
-     (reduce table
-             (get-number current-step-singleton-list)
-             (get-line current-step-singleton-list)
-             (get-column current-step-singleton-list))
-     current-step-singleton-list)))
+    (if (not current-step-singleton-list)
+        (values table #f)
+        (values
+         (reduce table
+                 (get-number current-step-singleton-list)
+                 (get-line current-step-singleton-list)
+                 (get-column current-step-singleton-list))
+         current-step-singleton-list))))
 
 (define (first-step table singleton-list)
   (if (not singleton-list)
       table
-      
-      ;; Recursive step with an reduced table
-      (first-step
-       (reduce
-        table
-        (get-number singleton-list)
-        (get-line singleton-list)
-        (get-column singleton-list))
-       (find-singleton table singleton-list))))
+      ;; Recursive step with a reduced table
+      (let((reduced-table (reduce
+                           table
+                           (get-number singleton-list)
+                           (get-line singleton-list)
+                           (get-column singleton-list))))
+        (first-step reduced-table (find-singleton reduced-table singleton-list)))))
+
 ;; =================================================================================
 ;; END FIRST STEP
 ;; =================================================================================
@@ -337,6 +344,13 @@
                     table))
 
 (define (reduce-set line-set column-set singleton table)
+  (display "Remove")
+  (display singleton)
+  (display "\n")
+  (display line-set)
+  (display "\n")
+  (display column-set)
+  (display "\n")
   (func-on-coordinate (lambda (line column cell)
                         (if (and (= line line-set) (= column column-set))
                             singleton
@@ -404,13 +418,10 @@
 
 ; Return the table and the list and the set's singleton list
 (define (second-step table visited-singleton-set)
-  ;(trace find-singleton-set)
-  ;(trace is-present-other-sets)
-  ;(trace second-step)
-         
   (let ([current-singleton (find-singleton-set table visited-singleton-set)])
+    ;(trace is-present-other-sets)
     (cond
-      ([not current-singleton] (values table visited-singleton-set))
+      ([not current-singleton] table)
       ;; TODO: avoid this verboseness
       ; This singleton is not unique, search for a new one
       ([is-present-other-sets (list-ref current-singleton 0)
@@ -419,9 +430,16 @@
                               table]
        (second-step table visited-singleton-set))
       (else
-       (values 
-        (reduce-set (list-ref current-singleton 0) (list-ref current-singleton 1) (list-ref current-singleton 2) table)
-        visited-singleton-set)))))
+       (reduce-set (list-ref current-singleton 0) (list-ref current-singleton 1) (list-ref current-singleton 2) table)))))
+
+
+;; =================================================================================
+;; SECOND STEP END
+;; =================================================================================
+
+;; =================================================================================
+;; RESOLVER
+;; =================================================================================
 
 ; Return true only if every cell is a singleton
 (define (solver-termination-condition table)
@@ -431,37 +449,25 @@
                                         #f))
                                   table)))
     (not result)))
-;; =================================================================================
-;; SECOND STEP END
-;; =================================================================================
 
-;; =================================================================================
-;; RESOLVER
-;; =================================================================================
 (define (solve matrix)
-  (define (pvt-solve transformed-matrix first-singleton second-singleton)
-    (if (solver-termination-condition transformed-matrix)
+  (define (pvt-solve transformed-matrix first-singleton)
+    (if (or (solver-termination-condition transformed-matrix) (not first-singleton))
         transformed-matrix
         (let*-values (
                       [(first-step-table first-step-list) (first-step-single transformed-matrix first-singleton)]
-                      [(second-step-table second-step-list) (second-step first-step-table second-singleton)]
+                      [(second-step-table) (second-step first-step-table (make-hash))]
                       )
-;          (display first-step-table)
-;          (display first-step-list)
-;          (display second-step-table)
-;          (display second-step-list)
-          (pvt-solve second-step-table first-step-list second-step-list)
-          
+                     (pvt-solve second-step-table first-step-list)
           )))
-  (trace pvt-solve)
-  (pvt-solve (transformTable sampletable) null (make-hash)))
+  (pvt-solve (first-step (transformTable matrix) (find-singleton (transformTable matrix) null)) null))
         
     
     
 
 
 ;; MAIN TEST
-(define lines (transformTable sampletable))
+;(define lines (transformTable sampletable2))
 ;(first-step-single lines null)
 ;(first-step lines (find-singleton lines null))
 ;(second-step lines (make-hash))
@@ -475,8 +481,7 @@
  box-index
  find-singleton
  add-singleton
- is-singleton-present
- remove-singleton-element
+  remove-singleton-element
  remove-singleton-column
  remove-singleton-table-column
  remove-singleton-table-line
@@ -495,6 +500,7 @@
  reduce-set
  second-step
  solver-termination-condition
+ first-step
  )
 
 
