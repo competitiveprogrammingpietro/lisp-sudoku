@@ -22,6 +22,17 @@
                  [0 4 0 0 5 0 0 3 6]
                  [7 0 3 0 1 8 0 0 0]))
 
+(define sampletable3 `(
+                 [0 1 0 9 0 7 0 0 5]
+                 [4 0 9 0 0 0 2 0 7]
+                 [8 7 6 4 0 0 0 0 0]
+                 [0 2 7 0 9 0 0 3 4]
+                 [0 0 0 6 0 3 0 0 0]
+                 [6 9 0 0 2 0 8 5 0]
+                 [0 0 0 0 0 1 7 4 8]
+                 [2 0 4 0 0 0 5 0 9]
+                 [7 0 0 5 0 9 0 2 0]))
+
 ;; =================================================================================
 ;; UTILITY FUNCTION WORKING WITH COORDINATES
 ;; =================================================================================
@@ -344,13 +355,6 @@
                     table))
 
 (define (reduce-set line-set column-set singleton table)
-  (display "Remove")
-  (display singleton)
-  (display "\n")
-  (display line-set)
-  (display "\n")
-  (display column-set)
-  (display "\n")
   (func-on-coordinate (lambda (line column cell)
                         (if (and (= line line-set) (= column column-set))
                             singleton
@@ -363,16 +367,20 @@
 ;; containing a specific number, this function it is used to check if it is possible to reduce
 ;; a set to a singleton.
 (define (is-present-other-sets line-idx column-idx number table)
+  ;(trace or-on-line)
+  ;(trace or-on-column)
+  ;(trace or-on-coordinate)
   (let* ([start-line (+ (truncate (/ (- line-idx 1) 3)) 1)]
          [start-column (+ (* 3 (truncate (/ (- column-idx 1) 3))) 1)]
          [end-line (+ start-line 2)]
          [end-column (+ start-column 2)])
     
     ;; Body
-    (or
+    (if 
+     (or
 
      ;; Check for another set in this line containing the same number
-     (or-on-line  (lambda (index cell)
+     (not (or-on-line  (lambda (index cell)
                     ;; Return false if
                     ;; 1) the item is an atom
                     ;; 2) the column matches the index of the one being under check
@@ -383,10 +391,10 @@
                         #f
                         #t))
                   table
-                  line-idx)
+                  line-idx))
      
      ;; Check for another set in this column containing the same number
-     (or-on-column (lambda (index cell)
+     (not (or-on-column (lambda (index cell)
                      (if [or
                           (atom? cell)
                           (= index line-idx)
@@ -394,10 +402,10 @@
                          #f
                          #t))
                    table
-                   column-idx)
+                   column-idx))
                      
      ;; Passing at the function the coordinated of the top-left corner of the box
-     (or-on-coordinate (lambda (lindex cindex cell)
+     (not (or-on-coordinate (lambda (lindex cindex cell)
                          (cond
                            ; Not a set
                            ([atom? cell] #f)
@@ -414,7 +422,10 @@
                            ([not (member number cell)] #f)
                            (else
                             #t)))
-                       table))))
+                            table)))
+     #f
+     #t)))
+          
 
 ; Return the table and the list and the set's singleton list
 (define (second-step table visited-singleton-set)
@@ -451,16 +462,14 @@
     (not result)))
 
 (define (solve matrix)
-  (define (pvt-solve transformed-matrix first-singleton)
-    (if (or (solver-termination-condition transformed-matrix) (not first-singleton))
+  (define (pvt-solve transformed-matrix)
+    (if (solver-termination-condition transformed-matrix)
         transformed-matrix
-        (let*-values (
-                      [(first-step-table first-step-list) (first-step-single transformed-matrix first-singleton)]
-                      [(second-step-table) (second-step first-step-table (make-hash))]
-                      )
-                     (pvt-solve second-step-table first-step-list)
+        (let* ([first-step-table (first-step transformed-matrix (find-singleton transformed-matrix null))]
+               [second-step-table (second-step first-step-table (make-hash))])
+          (pvt-solve second-step-table)
           )))
-  (pvt-solve (first-step (transformTable matrix) (find-singleton (transformTable matrix) null)) null))
+  (pvt-solve (transformTable matrix)))
         
     
     
@@ -471,6 +480,8 @@
 ;(first-step-single lines null)
 ;(first-step lines (find-singleton lines null))
 ;(second-step lines (make-hash))
+(solve sampletable3)
+(solve sampletable2)
 (solve sampletable)
 
 

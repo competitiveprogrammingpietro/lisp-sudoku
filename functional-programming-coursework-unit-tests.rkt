@@ -27,7 +27,6 @@
                                          sampleTransformTableOuputTwo
                                          "Expanded incorrectly test transformTable"))))
 
-
 (define increment-tests
   (test-suite "increment-tests"
               
@@ -360,24 +359,23 @@
                 
 
 ;; Generic tests
-;(run-tests box-index-tests)
-;(run-tests transform-table-tests)
-;(run-tests increment-tests)
-;(run-tests atom?-tests)
-;(run-tests or-on-coordinate-tests)
-;(run-tests or-on-line-tests)
-;(run-tests or-on-column-tests)
+(run-tests box-index-tests)
+(run-tests transform-table-tests)
+(run-tests increment-tests)
+(run-tests atom?-tests)
+(run-tests or-on-coordinate-tests)
+(run-tests or-on-line-tests)
+(run-tests or-on-column-tests)
 
 ;; Algorithm's first step tests
-;(run-tests find-singleton-tests)
-;(run-tests remove-singleton-list-tests)
-;(run-tests remove-singleton-column-tests)
-;(run-tests remove-singleton-table-column-tests)
-;(run-tests remove-singleton-table-line-tests)
-;(run-tests remove-singleton-table-box-tests)
-;(run-tests add-singleton-tests)
-;(run-tests is-singleton-present-tests)
-;(run-tests  get-tests)
+(run-tests find-singleton-tests)
+(run-tests remove-singleton-list-tests)
+(run-tests remove-singleton-column-tests)
+(run-tests remove-singleton-table-column-tests)
+(run-tests remove-singleton-table-line-tests)
+(run-tests remove-singleton-table-box-tests)
+(run-tests add-singleton-tests)
+(run-tests  get-tests)
 (run-tests first-step-tests)
 
 
