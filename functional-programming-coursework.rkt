@@ -1,5 +1,6 @@
 #lang racket
 (require racket/trace)
+
 (define sampletable `(
                  [0 2 5 0 0 1 0 0 0]
                  [1 0 4 2 5 0 0 0 0]
@@ -37,13 +38,8 @@
 ;; UTILITY FUNCTION WORKING WITH COORDINATES
 ;; =================================================================================
 
-;; Return the table given as input where each cell at is altered by the given
-;; function
-
-
-;; Return the table resulting from the application of the function
-;; (func line column cell) to every cell
-
+;; Return the table resulting from the application of the function (func line column cell)
+;; to each cell cell
 (define (func-on-coordinate func table line column)
   (define (pvt-line table (line-idx 1))
     (define (pvt-column line (column-idx 1))
@@ -52,17 +48,21 @@
           (cons
            (func line-idx column-idx (car line))
            (pvt-column (cdr line) (increment column-idx)))))
-         
     ;; Entry point pvt-line
     (if (null? table)
         null
         (cons
          (pvt-column (car table))
          (pvt-line (cdr table) (increment line-idx)))))
-  ;(trace func)
+  ; Entry point func-on-coordinate
   (pvt-line table))
   
-;; For each table's cell  (func line column table[line*stride + column])
+;; For each table's cell the function (func line column cell)
+;; is called on each cell.
+;; The function stops when (func) evaluates to a value different
+;; than false and  such value is returned, it reaches the end
+;; of the table returning false otherwise.
+return the (func line column table[line*stride + column])
 (define (or-on-coordinate func table)
   
   (define (pvt-line table (line-idx 1))
@@ -78,14 +78,11 @@
                 ; Else: recursive call
                 (pvt-column (cdr line) (increment column-idx))))))
 
-    ;(trace pvt-column)
     (if (null? table) #f
         (let ([result (pvt-column (car table))])
           (if (not result)
               (pvt-line (cdr table) (increment line-idx))
               result))))
-    ;(trace pvt-line)
-    ;(trace func)
   (pvt-line table))
   
 ;; Executes func for each cell such that {table[line-index[0]] .. table[line-index[N]]}
@@ -185,7 +182,6 @@
                                
 ;; Handles a cell, which can be a singleton or a list
 (define (remove-singleton-element entry number)
-  ;(trace remove-singleton-atom)
   (if (atom? entry)
       entry
       (remove-singleton-atom entry number)))
@@ -252,8 +248,6 @@
                   (remove-singleton-table-box-line-offset (cdr line) (+ acc 1)))
             (cons (car line) (remove-singleton-table-box-line-offset (cdr line) (+ acc 1))))))
   ;; Entry Point
-  ;(trace remove-singleton-table-box-line-pvt)
-  ;(trace remove-singleton-table-box-line-offset)
 
   (remove-singleton-table-box-line-pvt table 0))
 ;; =================================================================================
@@ -333,7 +327,6 @@
                             (hash-set! hashtable key (list item))
                             (hash-set! hashtable key (append value (list item))))
                         (list line column item))
-                      ;(trace add-it-and-return-it)
                       ;; The cell contains a singleton, skip it
                       (if (atom? cell)
                           #f
@@ -367,9 +360,6 @@
 ;; containing a specific number, this function it is used to check if it is possible to reduce
 ;; a set to a singleton.
 (define (is-present-other-sets line-idx column-idx number table)
-  ;(trace or-on-line)
-  ;(trace or-on-column)
-  ;(trace or-on-coordinate)
   (let* ([start-line (+ (truncate (/ (- line-idx 1) 3)) 1)]
          [start-column (+ (* 3 (truncate (/ (- column-idx 1) 3))) 1)]
          [end-line (+ start-line 2)]
@@ -430,7 +420,6 @@
 ; Return the table and the list and the set's singleton list
 (define (second-step table visited-singleton-set)
   (let ([current-singleton (find-singleton-set table visited-singleton-set)])
-    ;(trace is-present-other-sets)
     (cond
       ([not current-singleton] table)
       ;; TODO: avoid this verboseness
@@ -475,8 +464,9 @@
     
 
 
-;; MAIN TEST
-;(define lines (transformTable sampletable2))
+
+; Tests
+;(define lines (transformTable sampletable))
 ;(first-step-single lines null)
 ;(first-step lines (find-singleton lines null))
 ;(second-step lines (make-hash))
@@ -486,32 +476,31 @@
 
 
 ;; Exports
-(provide
- transformTable
- atom?
- box-index
- find-singleton
- add-singleton
-  remove-singleton-element
- remove-singleton-column
- remove-singleton-table-column
- remove-singleton-table-line
- remove-singleton-table-box
- reduce
- get-line
- get-column
- get-number
- increment
- is-present-other-sets
- func-on-coordinate
- or-on-coordinate
- or-on-line
- or-on-column
- find-singleton-set
- reduce-set
- second-step
- solver-termination-condition
- first-step
- )
+(provide transformTable
+         atom?
+         box-index
+         find-singleton
+         add-singleton
+         remove-singleton-element
+         remove-singleton-column
+         remove-singleton-table-column
+         remove-singleton-table-line
+         remove-singleton-table-box
+         reduce
+         get-line
+         get-column
+         get-number
+         increment
+         is-present-other-sets
+         func-on-coordinate
+         or-on-coordinate
+         or-on-line
+         or-on-column
+         find-singleton-set
+         reduce-set
+         second-step
+         solver-termination-condition
+         first-step
+         )
 
 
