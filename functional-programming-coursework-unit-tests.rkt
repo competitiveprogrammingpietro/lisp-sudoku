@@ -374,7 +374,7 @@
                                                (1 2 3 4 5 6 7 8 9)
                                                ))
                           (check-equal? (reduce list-input 2 2 2) list-input))
-              
+              #|
               (test-case "Reduce where a singleton is present at line 1 column 2 with value 2"
                           (define list-input `(
                                                ((1 2) 2 5 (1 2) (1 2) 1 (1 2) (1 2) (1 2))
@@ -388,7 +388,7 @@
                                                (1 (1 2) 3 4 5 6 7 8 9)
                                                ))
                           (define list-output `(
-                                                ((1) 2 5 (1) (1) 1 (1) (1) (1))
+                                                ((1 2 5 (1) (1) 1 (1) (1) (1))
                                                 (1 (1) 4 2 5 (1 2) (1 2) (1 2) (1 2))
                                                 ((1) (1) 6 (1 2) (1 2) 4 2 1 (1 2) (1 2) (1 2))
                                                 (1 (1) 3 4 5 6 7 8 9)
@@ -399,11 +399,12 @@
                                                 (1 (1) 3 4 5 6 7 8 9)         
                                                ))
                           (check-equal? (reduce list-input 1 2 2) list-output))
+              |#
               ))
 
 (define is-present-other-set-tests
   (test-suite "is-present-other-set-tests"
-                 #|      
+
               (test-case "Check line: another set with the number 3 other than the (6,3) cell is only present at the same line at (6, 7)"
                 (define list-input `(
                                      ((1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2) (1 2))
@@ -435,7 +436,7 @@
                                      )
                   )
                 (check-equal? (is-present-other-sets 1 3 3 list-input) #f))
-               |#
+
               (test-case "Box check: another set with the number 3 other than the (1,3) cell is present in the same box at (3, 2) and at the same line and column at (8,2) (1,7)"
                 (define list-input `(
                                      ((1 2) (1 2) (3 4) (1 2) (1 2) (1 2) (3 4) (1 2) (1 2))
@@ -684,7 +685,7 @@
                 (check-equal? (func-on-coordinate double list-input 3 4) list-output))
               ))
 
-
+#|
 (define second-step-tests
   (test-suite "second-step-tests"
               (test-case "Scan the whole table and return the identity"
@@ -790,7 +791,7 @@
                                       ))
                 (check-equal? (second-step list-input (make-hash)) list-output))
               ))
-
+|#
 
 (define solver-termination-condition-tests
   (test-suite "solver-termination-condition-tests"
@@ -850,7 +851,7 @@
 (run-tests find-singleton-set-test)
 (run-tests is-present-other-set-tests)
 (run-tests reduce-set-tests)
-(run-tests second-step-tests)
+;(run-tests second-step-tests)
 (run-tests func-on-coordinate-tests)
 (run-tests solver-termination-condition-tests)
 

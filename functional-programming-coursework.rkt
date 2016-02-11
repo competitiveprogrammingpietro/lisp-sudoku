@@ -247,8 +247,9 @@
    
   (define (remove-singleton-table-box-line-pvt line acc)
     (if (empty? line)
-        null
-        (if (or (= acc line-number) (= acc (+ line-number 1)) (= acc (+ line-number 2)))
+        null 
+
+       (if (or (= acc line-number) (= acc (+ line-number 1)) (= acc (+ line-number 2)))
             (cons (remove-singleton-table-box-line-offset (car line) 0)
                   (remove-singleton-table-box-line-pvt (cdr line) (+ acc 1)))
             (cons (car line )(remove-singleton-table-box-line-pvt (cdr line) (+ acc 1))))))
@@ -325,12 +326,22 @@
 ;; SECOND STEP
 ;; =================================================================================
 
-;;Return the first singleton among the first table's cell composed by a list (set)
+;; Return the first singleton among the first table's cell composed by a set
 ;; which is not contained in the hashtable addressed by linecolumn values.
+;; Hashtable's example : Key      Value
+;;                       1      (12 13 14)
+;;                       2      (21 22 23)
+;; That hashtable describes a search on a table where the number
+;; one has been returned, or discovered, at the values' coordinates expressed
+;; as a pair of (line,column).
+;;
+;; The function uses such hashtable not to return twice the same value.
+
 (define (find-singleton-set table visited-singleton-hashtable)
   (or-on-coordinate (lambda (line column cell)
                       
-                        ;; TODO: better way to do it ?
+                      ;; I'm sure there is a better way to do it, but I am
+                      ;; just a beginner so far
                       (define (add-it-and-return-it hashtable key value item)
                         ;; First element of the key's list
                         (if (null? value)
@@ -432,7 +443,6 @@
   (let ([current-singleton (find-singleton-set table visited-singleton-set)])
     (cond
       ([not current-singleton] table)
-      ;; TODO: avoid this verboseness
       ; This singleton is not unique, search for a new one
       ([is-present-other-sets (list-ref current-singleton 0)
                               (list-ref current-singleton 1)
