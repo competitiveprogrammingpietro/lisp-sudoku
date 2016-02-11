@@ -398,7 +398,7 @@
                                                 (1 (1) 3 4 5 6 7 8 9)
                                                 (1 (1) 3 4 5 6 7 8 9)         
                                                ))
-                          (check-equal? (reduce list-input 2 1 2) list-output))
+                          (check-equal? (reduce list-input 1 2 2) list-output))
               ))
 
 (define is-present-other-set-tests

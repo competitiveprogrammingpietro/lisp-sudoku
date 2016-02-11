@@ -38,31 +38,33 @@
 ;; UTILITY FUNCTION WORKING WITH COORDINATES
 ;; =================================================================================
 
-;; Return the table resulting from the application of the function (func line column cell)
-;; to each cell cell
+;; Returns the table resulting from the application of the function
+;; (func line column cell) to the cell at coordinate line, column
 (define (func-on-coordinate func table line column)
+  
   (define (pvt-line table (line-idx 1))
+
     (define (pvt-column line (column-idx 1))
       (if [null? line]
           null
           (cons
            (func line-idx column-idx (car line))
            (pvt-column (cdr line) (increment column-idx)))))
+
     ;; Entry point pvt-line
     (if (null? table)
         null
         (cons
          (pvt-column (car table))
          (pvt-line (cdr table) (increment line-idx)))))
+
   ; Entry point func-on-coordinate
   (pvt-line table))
   
-;; For each table's cell the function (func line column cell)
-;; is called on each cell.
-;; The function stops when (func) evaluates to a value different
-;; than false and  such value is returned, it reaches the end
-;; of the table returning false otherwise.
-;return the (func line column table[line*stride + column])
+;; The function (func line column cell) is called on each cell.
+;; The function stops when (func) evaluates to a value different than false and
+;; such value is returned, otherwise the end of the table is reached and the function
+;; returns false, since the (func) predicate it is false for every cell.
 (define (or-on-coordinate func table)
   
   (define (pvt-line table (line-idx 1))
@@ -70,41 +72,41 @@
     (define (pvt-column line (column-idx 1))
       ; Termination condition
       (if (null? line) #f
-          ; Otherwise we check the func returned value
+          ; Check func's return value, stop if true go ahead otherwise
           (let ([result (func  line-idx column-idx (car line))])
-            ; Function retured true, stop
             (if result
                 result
-                ; Else: recursive call
                 (pvt-column (cdr line) (increment column-idx))))))
-
+    ; pvt-line entry point
     (if (null? table) #f
         (let ([result (pvt-column (car table))])
           (if (not result)
               (pvt-line (cdr table) (increment line-idx))
               result))))
+  ; or-on-coordinate entry line
   (pvt-line table))
-  
-;; Executes func for each cell such that {table[line-index[0]] .. table[line-index[N]]}
-;; where N {0 .. line-size}
-;; (func index table[line-index[index]])
+
+;; The function (func line column cell) is called on each cell at a given line.
+;; The function stops when (func) evaluates to a value different than false and
+;; such value is returned, otherwise the end of the line is reached and the function
+;; returns false, since the (func) predicate it is false for every cell in the line.
 (define (or-on-line func table line-index)
   
   (define (pvt-line line (column-index 1))
-    ;; End of the line
+    ;; Termination condition, end of line
     (if (null? line)
         #f
+        ; Check func's return value, stop if true go ahead otherwise
         (let ([result (func column-index (car line))])
           (if result
               result
               (pvt-line (cdr line) (increment column-index))))))
-
   (pvt-line (list-ref table (- line-index 1))))
 
-;; Executes func for each cell such that {table[0[column-index]] ... table[N[column-index]]}
-;; where N {0 .. table-size}
-;; (func index table[current-line[column-index]])
-
+;; The function (func line column cell) is called on each cell at a given column.
+;; The function stops when (func) evaluates to a value different than false and
+;; such value is returned, otherwise the end of the column is reached and function
+;; returns false, since the (func) predicate it is false for every cell in the line.
 (define (or-on-column func table column-index)
   (define (pvt-line line (line-index 1))
 
@@ -117,27 +119,35 @@
               (pvt-line (cdr line) (increment line-index))))))
   (pvt-line table))
 
-;; Transform a table
+
+;; Transform a table of singletons representing a sudoku puzzle in a table where
+;; for every input table's cell whose value was zero there is now a set composed
+;; by all numbers from one to nine.
 (define (transformTable table)
-    ;; Transform a single number
+  ; Transform a cell, two cases:
+  ; 1 - cell is a singelton, identity function
+  ; 2 - cess is zero, return set (1 2 3 4 5 6 7 8 9)
   (define (transformNumber x)
     (if (> x 0)
         x
-        `(1 2 3 4 5 6 7 8 9)))
+        (apply list `(1 2 3 4 5 6 7 8 9))))
+
   ;; Transform an entire row
   (define (transformRaw x)
     (if (empty? x)
         null
         (cons (transformNumber (car x)) (transformRaw (cdr x)))))
-  ;; Use above functions to expand the whole table
+  
+  ;; transformTable entry point
   (if (empty? table)
       null
       (cons (transformRaw (car table)) (transformTable (cdr table)))))
 
-;;TODO: There is the pair? operator!
 (define (atom? x)
   (not (or (pair? x) (null? x))))
 
+;; Return the box's index for a given pair of cell's coordinate, the return
+;; value start index is one.
 (define (box-index line column)
   (let ((line-1 (- line 1))
         (column-1 (- column 1)))
@@ -146,19 +156,24 @@
      (truncate (/ column-1 3))
      1)))
     
-;; Common function for increment
+;; Merely increment a number
 (define (increment number)
   (+ number 1))
 
-;; Add the singleton to the global list
+;; The singleton list is composed by triples in the form:
+;; (line, column, number).
+;; This function builds a new triple with the given argument and add them at the
+;; beginning of the list of triples passed as fourth argument.
 (define (add-singleton line column number visited-singleton)
     (cons (list line column number) visited-singleton))
-
 
 
 ;; =================================================================================
 ;; FIND SINGLETON
 ;; =================================================================================
+
+;; Searches for the next singleton in the table passed as argument which is not
+;; already in the visited-singleton list
 (define (find-singleton table visited-singleton)
   (or-on-coordinate (lambda (line column cell)
                       ;; Not a singleton
@@ -171,15 +186,14 @@
                                 (cons singleton-item visited-singleton)))))
                     table))
 
-;; Handles a set cell, namely a single level list
-;; Sets containing a single number are reduced to a singleton
+;; Removes the singleton number from the set cell, set containing a single
+;; element as a result of this operation are reduced to a singleton.
 (define (remove-singleton-atom cell number)
   (let ((reduced-list (filter (lambda (x) (not (= number x))) cell)))
     (if (= (length reduced-list) 1)
         (car reduced-list)
         reduced-list)))
-    
-                               
+                         
 ;; Handles a cell, which can be a singleton or a list
 (define (remove-singleton-element entry number)
   (if (atom? entry)
@@ -266,6 +280,8 @@
 (define (get-number singleton-list)
   (car (cdr (cdr (car singleton-list)))))
 
+;; Remove the singleton given as argument from every line, column or box where
+;; it resides in.
 (define (reduce table singleton line column)
   (define box-number (box-index line column))
   (remove-singleton-table-line
@@ -274,7 +290,7 @@
      column singleton)
     line singleton))
 
-; Return the table and the list and the singleton's list
+; Return the table and the list and the singleton's list, not in use
 (define (first-step-single table singleton-list)
   (let ([current-step-singleton-list (find-singleton table singleton-list)])
     (if (not current-step-singleton-list)
@@ -286,6 +302,10 @@
                  (get-column current-step-singleton-list))
          current-step-singleton-list))))
 
+;; Perform the algorithm's first step, step by step
+;; 1) Find a singleton which hasn't been discovered yet
+;; 2) Remove it from every line,column,box it resides in
+;; 3) Start again or stop if not more new singleton are found
 (define (first-step table singleton-list)
   (if (not singleton-list)
       table
@@ -304,16 +324,6 @@
 ;; =================================================================================
 ;; SECOND STEP
 ;; =================================================================================
-
-; Notes on find-singleton
-
-; Ideally an hast-table mapping (coordinates) -> {already visited singleton}
-; wouldn't be a bad idea
-; Struct {recent} {Hashtable}
-
-; Reduce singleton
-; Check condition: each cell is a singleton
-; Hashtable ket linecolumn
 
 ;;Return the first singleton among the first table's cell composed by a list (set)
 ;; which is not contained in the hashtable addressed by linecolumn values.
@@ -470,9 +480,9 @@
 ;(first-step-single lines null)
 ;(first-step lines (find-singleton lines null))
 ;(second-step lines (make-hash))
-(solve sampletable3)
-(solve sampletable2)
-(solve sampletable)
+;(solve sampletable3)
+;(solve sampletable2)
+;(solve sampletable)
 
 
 ;; Exports
