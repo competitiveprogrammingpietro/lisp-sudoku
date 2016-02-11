@@ -62,7 +62,7 @@
 ;; The function stops when (func) evaluates to a value different
 ;; than false and  such value is returned, it reaches the end
 ;; of the table returning false otherwise.
-return the (func line column table[line*stride + column])
+;return the (func line column table[line*stride + column])
 (define (or-on-coordinate func table)
   
   (define (pvt-line table (line-idx 1))
